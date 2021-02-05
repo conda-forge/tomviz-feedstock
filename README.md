@@ -152,4 +152,5 @@ Feedstock Maintainers
 =====================
 
 * [@cjh1](https://github.com/cjh1/)
+* [@conda-forge/event-model](https://github.com/conda-forge/event-model/)
 
