@@ -124,3 +124,4 @@ about:
 extra:
   recipe-maintainers:
     - cjh1
+    - conda-forge/event-model
