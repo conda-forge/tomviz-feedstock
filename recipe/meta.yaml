@@ -34,7 +34,7 @@ source:
     folder: paraview/ThirdParty/QtTesting/vtkqttesting
 
 build:
-  number: 0
+  number: 1
 
 requirements:
   build:
