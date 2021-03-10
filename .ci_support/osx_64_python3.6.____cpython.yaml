@@ -1,19 +1,17 @@
+MACOSX_DEPLOYMENT_TARGET:
+- '10.9'
 c_compiler:
-- gcc
+- clang
 c_compiler_version:
-- '9'
-cdt_name:
-- cos6
+- '11'
 channel_sources:
 - conda-forge,defaults
 channel_targets:
 - conda-forge main
 cxx_compiler:
-- gxx
+- clangxx
 cxx_compiler_version:
-- '9'
-docker_image:
-- quay.io/condaforge/linux-anvil-comp7
+- '11'
 expat:
 - '2.2'
 freetype:
@@ -36,6 +34,8 @@ libxml2:
 - '2.9'
 lz4_c:
 - 1.9.3
+macos_machine:
+- x86_64-apple-darwin13.4.0
 pin_run_as_build:
   expat:
     max_pin: x.x
@@ -65,17 +65,17 @@ pin_run_as_build:
   zlib:
     max_pin: x.x
 python:
-- 3.7.* *_cpython
+- 3.6.* *_cpython
 qt:
 - '5.12'
 target_platform:
-- linux-64
+- osx-64
+tbb_devel:
+- '2021'
 xz:
 - '5.2'
 zip_keys:
 - - c_compiler_version
   - cxx_compiler_version
-- - cdt_name
-  - docker_image
 zlib:
 - '1.2'

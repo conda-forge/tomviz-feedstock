@@ -57,11 +57,13 @@ pin_run_as_build:
   zlib:
     max_pin: x.x
 python:
-- 3.7.* *_cpython
+- 3.6.* *_cpython
 qt:
 - '5.12'
 target_platform:
 - win-64
+tbb_devel:
+- '2021'
 xz:
 - '5.2'
 zlib:
