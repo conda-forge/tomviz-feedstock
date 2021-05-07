@@ -1,21 +1,13 @@
 c_compiler:
-- gcc
-c_compiler_version:
-- '9'
-cdt_name:
-- cos6
+- vs2017
 channel_sources:
 - conda-forge,defaults
 channel_targets:
 - conda-forge main
 cxx_compiler:
-- gxx
-cxx_compiler_version:
-- '9'
-docker_image:
-- quay.io/condaforge/linux-anvil-comp7
+- vs2017
 expat:
-- '2.2'
+- '2'
 freetype:
 - '2'
 glew:
@@ -37,8 +29,6 @@ libxml2:
 lz4_c:
 - 1.9.3
 pin_run_as_build:
-  expat:
-    max_pin: x.x
   freetype:
     max_pin: x
   glew:
@@ -69,13 +59,10 @@ python:
 qt:
 - '5.12'
 target_platform:
-- linux-64
+- win-64
+tbb_devel:
+- '2020'
 xz:
 - '5.2'
-zip_keys:
-- - c_compiler_version
-  - cxx_compiler_version
-- - cdt_name
-  - docker_image
 zlib:
 - '1.2'
