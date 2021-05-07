@@ -1,6 +1,6 @@
 {% set name = "tomviz" %}
-{% set version = "1.9.0.post84" %}
-{% set tomviz_sha = "1e6b9d967da32d1e824a13b21721c90284a46a72" %}
+{% set version = "1.9.0.post145" %}
+{% set tomviz_sha = "5b25e140dac06cd655522d35d9a1a69b742b9006" %}
 {% set paraview_sha = "74338e7d6058d0d1cf89405b3c8e932f9d4ea921" %}
 package:
   name: {{ name|lower }}
