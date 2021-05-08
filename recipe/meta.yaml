@@ -8,7 +8,7 @@ package:
 
 source:
   - url: https://github.com/OpenChemistry/tomviz/archive/{{ tomviz_sha }}.tar.gz
-    sha256: 239d047120d15724d366e811043909f26ec783e3688a53bb25dbc5e18238821d
+    sha256: ce0c9fa133a71612ff7cdd53c4ab9f9b2ec07234f5fedaaf01f8f29ca51c93b0
     folder: tomviz
 
   # Download the submodules manually!
