@@ -13,7 +13,7 @@ cxx_compiler:
 cxx_compiler_version:
 - '11'
 expat:
-- '2.2'
+- '2'
 freetype:
 - '2'
 glew:
@@ -37,8 +37,6 @@ lz4_c:
 macos_machine:
 - x86_64-apple-darwin13.4.0
 pin_run_as_build:
-  expat:
-    max_pin: x.x
   freetype:
     max_pin: x
   glew:
@@ -70,6 +68,8 @@ qt:
 - '5.12'
 target_platform:
 - osx-64
+tbb_devel:
+- '2020'
 xz:
 - '5.2'
 zip_keys:

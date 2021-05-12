@@ -7,7 +7,7 @@ channel_targets:
 cxx_compiler:
 - vs2017
 expat:
-- '2.2'
+- '2'
 freetype:
 - '2'
 glew:
@@ -29,8 +29,6 @@ libxml2:
 lz4_c:
 - 1.9.3
 pin_run_as_build:
-  expat:
-    max_pin: x.x
   freetype:
     max_pin: x
   glew:
@@ -62,6 +60,8 @@ qt:
 - '5.12'
 target_platform:
 - win-64
+tbb_devel:
+- '2020'
 xz:
 - '5.2'
 zlib:
