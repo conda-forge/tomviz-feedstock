@@ -5,7 +5,7 @@ c_compiler_version:
 cdt_name:
 - cos6
 channel_sources:
-- conda-forge,defaults
+- conda-forge
 channel_targets:
 - conda-forge main
 cxx_compiler:
@@ -69,7 +69,7 @@ qt:
 target_platform:
 - linux-64
 tbb_devel:
-- '2020'
+- '2021'
 xz:
 - '5.2'
 zip_keys:
