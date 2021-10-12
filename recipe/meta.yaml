@@ -47,6 +47,7 @@ requirements:
     - pkg-config
     - git-lfs
     - hdf5
+    - tbb-devel
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
     - {{ cdt('xorg-x11-proto-devel') }}  # [linux]
