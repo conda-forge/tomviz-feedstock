@@ -13,7 +13,7 @@ cxx_compiler:
 cxx_compiler_version:
 - '9'
 docker_image:
-- quay.io/condaforge/linux-anvil-comp7
+- quay.io/condaforge/linux-anvil-cos7-x86_64
 expat:
 - '2'
 freetype:
@@ -25,7 +25,7 @@ hdf5:
 jpeg:
 - '9'
 jsoncpp:
-- 1.9.4
+- 1.9.5
 libpng:
 - '1.6'
 libprotobuf:
@@ -75,7 +75,5 @@ xz:
 zip_keys:
 - - c_compiler_version
   - cxx_compiler_version
-- - cdt_name
-  - docker_image
 zlib:
 - '1.2'
