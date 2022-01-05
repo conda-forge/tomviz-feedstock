@@ -54,6 +54,7 @@ requirements:
     - tbb-devel
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
+    - {{ cdt('libglvnd-devel') }}        # [linux]
     - {{ cdt('xorg-x11-proto-devel') }}  # [linux]
     - {{ cdt('libx11-devel') }}          # [linux]
     - {{ cdt('libxext-devel') }}         # [linux]
