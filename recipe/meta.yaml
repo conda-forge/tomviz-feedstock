@@ -42,6 +42,10 @@ build:
 
 requirements:
   build:
+    - python
+    - pip
+    - wheel
+    - setuptools
     - cmake
     - ninja
     - pkg-config
