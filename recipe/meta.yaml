@@ -1,6 +1,6 @@
 {% set name = "tomviz" %}
-{% set version = "1.10.0.post137" %}
-{% set tomviz_sha = "92ac7bb5764fb6b323290892cc636b99fe32f2d4" %}
+{% set version = "1.10.0.post152" %}
+{% set tomviz_sha = "075b5bfc6ba448f43ab56f79b14d4c23a76b7dad" %}
 {% set paraview_sha = "74338e7d6058d0d1cf89405b3c8e932f9d4ea921" %}
 package:
   name: {{ name|lower }}
@@ -8,7 +8,7 @@ package:
 
 source:
   - url: https://github.com/OpenChemistry/tomviz/archive/{{ tomviz_sha }}.tar.gz
-    sha256: e35f5170f3dc83c5a2cd581161a7a9d77e41c60aadaacc9638702cc6f12e74a7
+    sha256: 0cf081d8f4bb1d4d13cdfef5cb4fcca00d2ab1b57fde50773ddd11a0652f540c
     folder: tomviz
 
   # Download the submodules manually!
