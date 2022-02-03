@@ -29,7 +29,7 @@ cmake -LAH -G"Ninja" ^
     ..\paraview
 if errorlevel 1 exit 1
 
-cmake --build . --target install --config Release
+cmake --build . --target install --config Release --parallel %CPU_COUNT%
 if errorlevel 1 exit 1
 
 :: Now Tomviz
@@ -48,5 +48,5 @@ cmake -G"Ninja" -DCMAKE_BUILD_TYPE=Release ^
   ..\tomviz
 if errorlevel 1 exit 1
 
-cmake --build . --target install --config Release
+cmake --build . --target install --config Release --parallel %CPU_COUNT%
 if errorlevel 1 exit 1
