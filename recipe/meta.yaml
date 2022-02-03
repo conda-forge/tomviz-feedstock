@@ -109,7 +109,9 @@ requirements:
     - scipy
     - itk
     - marshmallow
+    - jsonpatch
     - jsonpointer
+    - pyfftw
     - xorg-libx11
 test:
   imports:
