@@ -37,11 +37,15 @@ source:
     sha256: f2db9f032b48033948679bc4d13a29c6b554bd9e0a435c1805c429818b5207bb
     folder: paraview/ThirdParty/catalyst/vtkcatalyst/catalyst
 build:
-  number: 0
+  number: 1
   skip: true  # [py != 37]
 
 requirements:
   build:
+    - python
+    - pip
+    - wheel
+    - setuptools
     - cmake
     - ninja
     - pkg-config
@@ -50,6 +54,7 @@ requirements:
     - tbb-devel
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
+    - {{ cdt('libglvnd-devel') }}        # [linux]
     - {{ cdt('xorg-x11-proto-devel') }}  # [linux]
     - {{ cdt('libx11-devel') }}          # [linux]
     - {{ cdt('libxext-devel') }}         # [linux]
