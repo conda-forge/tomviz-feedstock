@@ -112,6 +112,7 @@ requirements:
     - jsonpatch
     - jsonpointer
     - pyfftw
+    - pygments
     - xorg-libx11
 test:
   imports:
