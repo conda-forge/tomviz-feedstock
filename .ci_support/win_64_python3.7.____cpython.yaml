@@ -17,7 +17,7 @@ hdf5:
 jpeg:
 - '9'
 jsoncpp:
-- 1.9.4
+- 1.9.5
 libpng:
 - '1.6'
 libprotobuf:
