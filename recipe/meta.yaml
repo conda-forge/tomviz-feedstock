@@ -42,6 +42,7 @@ build:
 
 requirements:
   build:
+    - make   # [unix]
     - cmake
     - ninja
     - pkg-config
