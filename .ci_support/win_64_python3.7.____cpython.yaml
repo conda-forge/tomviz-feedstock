@@ -15,7 +15,7 @@ freetype:
 glew:
 - '2.1'
 hdf5:
-- 1.10.6
+- 1.12.2
 jpeg:
 - '9'
 jsoncpp:
@@ -61,7 +61,7 @@ qt:
 target_platform:
 - win-64
 tbb_devel:
-- '2020'
+- '2021'
 xz:
 - '5.2'
 zlib:
