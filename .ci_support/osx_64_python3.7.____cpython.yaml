@@ -3,7 +3,7 @@ MACOSX_DEPLOYMENT_TARGET:
 c_compiler:
 - clang
 c_compiler_version:
-- '13'
+- '14'
 channel_sources:
 - conda-forge
 channel_targets:
@@ -11,7 +11,7 @@ channel_targets:
 cxx_compiler:
 - clangxx
 cxx_compiler_version:
-- '13'
+- '14'
 docker_image:
 - quay.io/condaforge/linux-anvil-comp7
 expat:
@@ -29,7 +29,7 @@ jsoncpp:
 libpng:
 - '1.6'
 libprotobuf:
-- '3.20'
+- '3.21'
 libtiff:
 - '4'
 libxml2:
@@ -69,7 +69,7 @@ qt:
 target_platform:
 - osx-64
 tbb_devel:
-- '2020'
+- '2021'
 xz:
 - '5.2'
 zip_keys:
