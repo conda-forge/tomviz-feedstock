@@ -67,7 +67,7 @@ qt:
 target_platform:
 - linux-64
 tbb_devel:
-- '2021'
+- '2020'
 xz:
 - '5.2'
 zip_keys:
