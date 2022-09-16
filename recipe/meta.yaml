@@ -1,6 +1,6 @@
 {% set name = "tomviz" %}
-{% set version = "1.10.0.post266" %}
-{% set tomviz_sha = "0a1b720c6ff55763cf951e78938c9d332e9efbc0" %}
+{% set version = "2.0.0rc1.post9" %}
+{% set tomviz_sha = "3420386eaa3af609fef2e1699e8f813e1a2107c3" %}
 {% set paraview_sha = "74338e7d6058d0d1cf89405b3c8e932f9d4ea921" %}
 package:
   name: {{ name|lower }}
@@ -8,7 +8,7 @@ package:
 
 source:
   - url: https://github.com/OpenChemistry/tomviz/archive/{{ tomviz_sha }}.tar.gz
-    sha256: ba6a72a19b2f63746739b855d7fa801143730f91bf4c427277a9cb0a7a3c3992
+    sha256: 25f9fa5ef1bbc0a013482244d89d4e72712bce6025df27c949cfb77eabe0ade5
     folder: tomviz
 
   # Download the submodules manually!
@@ -37,7 +37,7 @@ source:
     sha256: f2db9f032b48033948679bc4d13a29c6b554bd9e0a435c1805c429818b5207bb
     folder: paraview/ThirdParty/catalyst/vtkcatalyst/catalyst
 build:
-  number: 2
+  number: 0
   skip: true  # [py != 37]
 
 requirements:
