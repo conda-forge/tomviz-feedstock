@@ -1,14 +1,14 @@
 {% set name = "tomviz" %}
-{% set version = "2.0.0rc1.post9" %}
-{% set tomviz_sha = "3420386eaa3af609fef2e1699e8f813e1a2107c3" %}
-{% set paraview_sha = "74338e7d6058d0d1cf89405b3c8e932f9d4ea921" %}
+{% set version = "2.0.0rc1.post36" %}
+{% set tomviz_sha = "b5e76bc98a56357fbc323200ecdcd58f6a962ed8" %}
+{% set paraview_sha = "6d9192059fe998cf7004dd85638ccf33f89e6976" %}
 package:
   name: {{ name|lower }}
   version: {{ version }}
 
 source:
   - url: https://github.com/OpenChemistry/tomviz/archive/{{ tomviz_sha }}.tar.gz
-    sha256: 25f9fa5ef1bbc0a013482244d89d4e72712bce6025df27c949cfb77eabe0ade5
+    sha256: f6a732a3fe732bff10453028e88c2653b3f3a0f987a2dbac8c4337cf755a568f
     folder: tomviz
 
   # Download the submodules manually!
@@ -17,25 +17,22 @@ source:
     folder: tomviz/thirdparty/pybind11
 
   - url: https://github.com/OpenChemistry/ParaView/archive/{{ paraview_sha }}.tar.gz
-    sha256: e3bd3562cc2daa9c846af9df112d0db294b81080e3cbf2a72f6a3d351f5834ce
+    sha256: f55a46b8a288237e017f8cc964173941e5d334f64115decd73318f551c44ec53
     folder: paraview
 
   # Download the submodules manually!
-  - url: https://github.com/OpenChemistry/VTK/archive/fc5d7cb1748b7b123c7d97bce88cf9385b39eeb6.tar.gz
-    sha256: 5da5ec422aec9837854021af4c6ff4b51395d530cef56cd54f826ee9d1299e02
+  - url: https://github.com/OpenChemistry/VTK/archive/3d5b7843f44ecb8066ab1199bbefe5aea7de2fc5.tar.gz
+    sha256: b3d1f463638caca12c8c6569d8a4eba27c02dd802932f363ea76198f9f43f573
     folder: paraview/VTK
 
-  - url: https://github.com/OpenChemistry/VisItBridge/archive/42fce8ad6863ca2c1308741955cca1d0cf570d22.tar.gz
-    sha256: 1e08377ef6244ec61f3899a9a17093a365fe3ad78fbfd4aa8c45608a6e05136e
+  - url: https://github.com/OpenChemistry/VisItBridge/archive/df098f4148a96d62c388861c1d476039e02224ae.tar.gz
+    sha256: 3500052de16eb9b8082c7f2bfb99f1ce93df11d1fc21138909a6379bdd95d566
     folder: paraview/Utilities/VisItBridge
 
-  - url: https://github.com/OpenChemistry/QtTesting/archive/72290689c7c55622d729bf95c97e7627026a234e.tar.gz
-    sha256: 706c9c0b0d01d2d1e449a875605301a88af32084c01159ad1ba0b08874af61f2
+  - url: https://github.com/OpenChemistry/QtTesting/archive/d87ac3dc941d5f118ce6e18cc744ebbc4f91ff28.tar.gz
+    sha256: f00bbfc78a466edef06c86e914bd6535423226aac80d72edffaa5bb27a36314d
     folder: paraview/ThirdParty/QtTesting/vtkqttesting
 
-  - url: https://github.com/OpenChemistry/vtkcatalyst/archive/84b8e8d155af5bd97914c4d8c0d768c3b858e1cf.tar.gz
-    sha256: f2db9f032b48033948679bc4d13a29c6b554bd9e0a435c1805c429818b5207bb
-    folder: paraview/ThirdParty/catalyst/vtkcatalyst/catalyst
 build:
   number: 0
   skip: true  # [py != 37]
