@@ -29,7 +29,7 @@ jsoncpp:
 libpng:
 - '1.6'
 libprotobuf:
-- '3.20'
+- '3.21'
 libtiff:
 - '4'
 libxml2:
@@ -67,7 +67,7 @@ qt:
 target_platform:
 - linux-64
 tbb_devel:
-- '2020'
+- '2021'
 xz:
 - '5.2'
 zip_keys:
