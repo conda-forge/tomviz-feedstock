@@ -43,7 +43,7 @@ requirements:
     - ninja
     - pkg-config
     - git-lfs
-    - hdf5
+    - hdf5 ==1.13.1
     - tbb-devel
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
@@ -99,7 +99,7 @@ requirements:
     - libtheora
     - gl2ps
     - tbb-devel
-    - hdf5
+    - hdf5 ==1.13.1
   run:
     - python
     - numpy
