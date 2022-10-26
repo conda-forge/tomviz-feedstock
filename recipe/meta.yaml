@@ -38,7 +38,7 @@ source:
     folder: paraview/ThirdParty/catalyst/vtkcatalyst/catalyst
 build:
   number: 1
-  skip: true  # [py != 37]
+  skip: true  # [py != 38]
 
 requirements:
   build:
