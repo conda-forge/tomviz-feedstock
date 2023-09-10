@@ -37,7 +37,7 @@ source:
     sha256: f2db9f032b48033948679bc4d13a29c6b554bd9e0a435c1805c429818b5207bb
     folder: paraview/ThirdParty/catalyst/vtkcatalyst/catalyst
 build:
-  number: 0
+  number: 1
   skip: true  # [py != 37]
 
 requirements:
@@ -84,7 +84,7 @@ requirements:
   host:
     - python
     - libpng
-    - jpeg
+    - libjpeg-turbo
     - libtiff
     - libxml2
     - zlib
