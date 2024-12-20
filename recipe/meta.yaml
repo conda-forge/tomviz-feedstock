@@ -37,7 +37,7 @@ source:
     sha256: f2db9f032b48033948679bc4d13a29c6b554bd9e0a435c1805c429818b5207bb
     folder: paraview/ThirdParty/catalyst/vtkcatalyst/catalyst
 build:
-  number: 2
+  number: 3
   skip: true  # [py != 37]
 
 requirements:
@@ -49,6 +49,7 @@ requirements:
     - hdf5
     - tbb-devel
     - {{ compiler('c') }}
+    - {{ stdlib("c") }}
     - {{ compiler('cxx') }}
     - {{ cdt('xorg-x11-proto-devel') }}  # [linux]
     - {{ cdt('libx11-devel') }}          # [linux]
@@ -95,7 +96,7 @@ requirements:
     - glew
     - double-conversion
     - jsoncpp
-    - xz
+    - liblzma-devel
     - cgns
     - qt
     - pugixml
