@@ -4,6 +4,12 @@
 # https://gitlab.kitware.com/paraview/paraview/issues/19645
 export LDFLAGS=`echo "${LDFLAGS}" | sed "s|-Wl,-dead_strip_dylibs||g"`
 
+# Update submodules
+cd tomviz;git submodule update --init --recursive
+cd ..
+cd paraview;git submodule update --init --recursive
+cd ..
+
 # First build ParaView
 mkdir -p paraview-build && cd paraview-build
 cmake -G"Ninja" -DCMAKE_BUILD_TYPE:STRING=Release \
@@ -16,18 +22,16 @@ cmake -G"Ninja" -DCMAKE_BUILD_TYPE:STRING=Release \
   -DPython3_FIND_STRATEGY:STRING=LOCATION \
   -DPython3_ROOT_DIR:PATH=${PREFIX} \
   -DPARAVIEW_ENABLE_CATALYST:BOOL=OFF \
-  -DPARAVIEW_ENABLE_PYTHON:BOOL=ON \
+  -DPARAVIEW_USE_PYTHON:BOOL=ON \
   -DPARAVIEW_ENABLE_WEB:BOOL=OFF \
   -DPARAVIEW_ENABLE_EMBEDDED_DOCUMENTATION:BOOL=OFF\
   -DPARAVIEW_USE_QTHELP:BOOL=OFF \
   -DPARAVIEW_PLUGINS_DEFAULT:BOOL=OFF \
-  -DPARAVIEW_CUSTOM_LIBRARY_SUFFIX:STRING=tpv5.7 \
-  -DPARAVIEW_USE_VTKM:BOOL=OFF \
+  -DPARAVIEW_USE_VISKORES:BOOL=OFF \
   -DVTK_SMP_IMPLEMENTATION_TYPE:STRING=TBB \
   -DVTK_PYTHON_VERSION:STRING=3 \
   -DVTK_PYTHON_FULL_THREADSAFE:BOOL=ON \
   -DVTK_NO_PYTHON_THREADS:BOOL=OFF \
-  -DVTK_MODULE_USE_EXTERNAL_VTK_hdf5:BOOL=ON \
   ../paraview
 ninja install -j${CPU_COUNT}
 
