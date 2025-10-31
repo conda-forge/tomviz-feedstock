@@ -12,7 +12,7 @@ cd ..
 
 # First build ParaView
 mkdir -p paraview-build && cd paraview-build
-cmake -G"Ninja" -DCMAKE_BUILD_TYPE:STRING=Release \
+cmake -G"Ninja" -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo \
   -DCMAKE_INSTALL_PREFIX:PATH=${PREFIX} \
   -DCMAKE_PREFIX_PATH:PATH=${PREFIX} \
   -DCMAKE_INSTALL_RPATH:STRING=${PREFIX}/lib \
@@ -37,7 +37,7 @@ ninja install -j${CPU_COUNT}
 
 # Now build Tomviz
 cd .. && mkdir -p tomviz-build && cd tomviz-build
-cmake -G"Ninja" -DCMAKE_BUILD_TYPE:STRING=Release \
+cmake -G"Ninja" -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo \
   -DCMAKE_INSTALL_PREFIX:PATH=${PREFIX} \
   -DCMAKE_PREFIX_PATH:PATH=${PREFIX} \
   -DCMAKE_INSTALL_LIBDIR:STRING=lib \

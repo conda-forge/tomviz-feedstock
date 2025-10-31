@@ -4,7 +4,7 @@ set "CXXFLAGS=-MD"
 :: Build ParaView first
 mkdir paraview-build && cd paraview-build
 cmake -LAH -G"Ninja" ^
-    -DCMAKE_BUILD_TYPE:STRING=Release ^
+    -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo ^
     -DCMAKE_INSTALL_PREFIX:PATH="%PREFIX%" ^
     -DCMAKE_PREFIX_PATH:PATH="%LIBRARY_PREFIX%" ^
     -DCMAKE_INSTALL_LIBDIR:PATH="Library/lib" ^
@@ -29,12 +29,12 @@ cmake -LAH -G"Ninja" ^
     ..\paraview
 if errorlevel 1 exit 1
 
-cmake --build . --target install --config Release --parallel %CPU_COUNT%
+cmake --build . --target install --config RelWithDebInfo --parallel %CPU_COUNT%
 if errorlevel 1 exit 1
 
 :: Now Tomviz
 cd .. && mkdir tomviz-build && cd tomviz-build
-cmake -G"Ninja" -DCMAKE_BUILD_TYPE=Release ^
+cmake -G"Ninja" -DCMAKE_BUILD_TYPE=RelWithDebInfo ^
   -DCMAKE_INSTALL_PREFIX:PATH="%PREFIX%" ^
   -DCMAKE_PREFIX_PATH:PATH="%LIBRARY_PREFIX%" ^
   -DCMAKE_INSTALL_LIBDIR:PATH="Library/lib" ^
