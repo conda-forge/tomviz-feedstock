@@ -5,9 +5,12 @@
 export LDFLAGS=`echo "${LDFLAGS}" | sed "s|-Wl,-dead_strip_dylibs||g"`
 
 # Update submodules
-cd tomviz;git submodule update --init --recursive
+cd paraview
+git submodule update --init --recursive
 cd ..
-cd paraview;git submodule update --init --recursive
+
+cd tomviz
+git submodule update --init --recursive
 cd ..
 
 # First build ParaView

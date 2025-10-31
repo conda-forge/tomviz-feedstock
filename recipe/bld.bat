@@ -1,6 +1,15 @@
 :: remove -GL from CXXFLAGS
 set "CXXFLAGS=-MD"
 
+:: Update submodules
+cd paraview
+git submodule update --init --recursive
+cd ..
+
+cd tomviz
+git submodule update --init --recursive
+cd ..
+
 :: Build ParaView first
 mkdir paraview-build && cd paraview-build
 cmake -LAH -G"Ninja" ^
@@ -15,13 +24,12 @@ cmake -LAH -G"Ninja" ^
     -DPython3_ROOT_DIR:PATH="%PREFIX%" ^
     -DPARAVIEW_PYTHON_SITE_PACKAGES_SUFFIX:PATH="Lib/site-packages" ^
     -DPARAVIEW_ENABLE_CATALYST:BOOL=OFF  ^
-    -DPARAVIEW_ENABLE_PYTHON:BOOL=ON  ^
+    -DPARAVIEW_USE_PYTHON:BOOL=ON  ^
     -DPARAVIEW_ENABLE_WEB:BOOL=OFF  ^
     -DPARAVIEW_ENABLE_EMBEDDED_DOCUMENTATION:BOOL=OFF  ^
     -DPARAVIEW_USE_QTHELP:BOOL=OFF  ^
     -DPARAVIEW_PLUGINS_DEFAULT:BOOL=OFF  ^
-    -DPARAVIEW_USE_VTKM:BOOL=OFF  ^
-    -DPARAVIEW_CUSTOM_LIBRARY_SUFFIX:STRING=tpv5.7 ^
+    -DPARAVIEW_USE_VISKORES:BOOL=OFF  ^
     -DVTK_SMP_IMPLEMENTATION_TYPE:STRING=TBB  ^
     -DVTK_PYTHON_VERSION:STRING=3  ^
     -DVTK_PYTHON_FULL_THREADSAFE:BOOL=ON  ^
