@@ -1,37 +1,33 @@
 {% set name = "tomviz" %}
 {% set version = "2.1.0" %}
-{% set paraview_version = "6.0.0" %}
+{% set paraview_version = "6.0.1" %}
 package:
   name: {{ name|lower }}
   version: {{ version }}
 
 source:
-  - git_url: https://github.com/danlipsa/tomviz
-    git_rev: paraview_upgrade
+  - git_url: https://github.com/OpenChemistry/tomviz
+    git_rev: {{ version }}
     folder: tomviz
   # Submodules updated in build.sh: pybind11
 
   - git_url: https://gitlab.kitware.com/paraview/paraview.git
-    git_rev: v6.0.0
+    git_rev: {{ paraview_version }}
     folder: paraview
   # Submodules updated in build.sh: VTK, VisItBridge, QtTesting, catalyst
 
 build:
   number: 0
-  skip: true  # [py != 37]
 
 requirements:
   build:
     - cmake
     - ninja
     - pkg-config
-    - git-lfs
-    - tbb-devel
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
   host:
     - python
-    - py3c
     - libgl-devel  # [linux]
     - libegl-devel  # [linux]
     - libglvnd-devel  # [linux]
