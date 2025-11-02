@@ -27,7 +27,6 @@ cmake -LAH -G "Ninja" \
   -DCMAKE_INSTALL_LIBDIR:STRING=lib \
   -DCMAKE_FIND_FRAMEWORK:STRING=LAST \
   -DVTK_BUILD_TESTING:BOOL=OFF \
-  -DVTK_MODULE_ENABLE_VTK_GUISupportGTK=NO \
   -DPython3_FIND_STRATEGY:STRING=LOCATION \
   -DPython3_ROOT_DIR:PATH=${PREFIX} \
   -DPARAVIEW_ENABLE_CATALYST:BOOL=OFF \
@@ -44,7 +43,7 @@ cmake -LAH -G "Ninja" \
   -DVTK_PYTHON_FULL_THREADSAFE:BOOL=ON \
   -DVTK_NO_PYTHON_THREADS:BOOL=OFF \
   ../paraview
-cmake --build . --target install
+ninja -j2 install
 
 # Now build Tomviz
 cd .. && mkdir -p tomviz-build && cd tomviz-build
