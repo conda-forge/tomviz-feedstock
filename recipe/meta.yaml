@@ -1,122 +1,65 @@
 {% set name = "tomviz" %}
-{% set version = "2.0.0rc1.post9" %}
-{% set tomviz_sha = "3420386eaa3af609fef2e1699e8f813e1a2107c3" %}
-{% set paraview_sha = "74338e7d6058d0d1cf89405b3c8e932f9d4ea921" %}
+{% set version = "2.1.1" %}
+{% set paraview_version = "v6.0.1" %}
+{% set vtk_version = "9.5.2" %}
 package:
   name: {{ name|lower }}
   version: {{ version }}
 
 source:
-  - url: https://github.com/OpenChemistry/tomviz/archive/{{ tomviz_sha }}.tar.gz
-    sha256: 25f9fa5ef1bbc0a013482244d89d4e72712bce6025df27c949cfb77eabe0ade5
+  - git_url: https://github.com/OpenChemistry/tomviz
+    git_rev: {{ version }}
     folder: tomviz
+  # Submodules updated in build.sh: pybind11
 
-  # Download the submodules manually!
-  - url: https://github.com/pybind/pybind11/archive/v2.5.0.tar.gz
-    sha256: 97504db65640570f32d3fdf701c25a340c8643037c3b69aec469c10c93dc8504
-    folder: tomviz/thirdparty/pybind11
-
-  - url: https://github.com/OpenChemistry/ParaView/archive/{{ paraview_sha }}.tar.gz
-    sha256: e3bd3562cc2daa9c846af9df112d0db294b81080e3cbf2a72f6a3d351f5834ce
+  - git_url: https://gitlab.kitware.com/paraview/paraview.git
+    git_rev: {{ paraview_version }}
     folder: paraview
+  # Submodules updated in build.sh: VTK, VisItBridge, QtTesting, catalyst
 
-  # Download the submodules manually!
-  - url: https://github.com/OpenChemistry/VTK/archive/fc5d7cb1748b7b123c7d97bce88cf9385b39eeb6.tar.gz
-    sha256: 5da5ec422aec9837854021af4c6ff4b51395d530cef56cd54f826ee9d1299e02
-    folder: paraview/VTK
-
-  - url: https://github.com/OpenChemistry/VisItBridge/archive/42fce8ad6863ca2c1308741955cca1d0cf570d22.tar.gz
-    sha256: 1e08377ef6244ec61f3899a9a17093a365fe3ad78fbfd4aa8c45608a6e05136e
-    folder: paraview/Utilities/VisItBridge
-
-  - url: https://github.com/OpenChemistry/QtTesting/archive/72290689c7c55622d729bf95c97e7627026a234e.tar.gz
-    sha256: 706c9c0b0d01d2d1e449a875605301a88af32084c01159ad1ba0b08874af61f2
-    folder: paraview/ThirdParty/QtTesting/vtkqttesting
-
-  - url: https://github.com/OpenChemistry/vtkcatalyst/archive/84b8e8d155af5bd97914c4d8c0d768c3b858e1cf.tar.gz
-    sha256: f2db9f032b48033948679bc4d13a29c6b554bd9e0a435c1805c429818b5207bb
-    folder: paraview/ThirdParty/catalyst/vtkcatalyst/catalyst
 build:
-  number: 3
-  skip: true  # [py != 37]
+  number: 0
+  # Skip windows for now, until we fix the build for it
+  skip: true  # [win]
 
 requirements:
   build:
     - cmake
     - ninja
     - pkg-config
-    - git-lfs
-    - hdf5
-    - tbb-devel
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
-    - {{ cdt('xorg-x11-proto-devel') }}  # [linux]
-    - {{ cdt('libx11-devel') }}          # [linux]
-    - {{ cdt('libxext-devel') }}         # [linux]
-    - {{ cdt('libxrender-devel') }}      # [linux]
-    - {{ cdt('mesa-libgl-devel') }}      # [linux]
-    - {{ cdt('mesa-libegl-devel') }}     # [linux]
-    - {{ cdt('mesa-dri-drivers') }}      # [linux]
-    - {{ cdt('libxau-devel') }}          # [linux]
-    - {{ cdt('alsa-lib-devel') }}        # [linux]
-    - {{ cdt('gtk2-devel') }}            # [linux]
-    - {{ cdt('gtkmm24-devel') }}         # [linux]
-    - {{ cdt('libdrm-devel') }}          # [linux]
-    - {{ cdt('libxcomposite-devel') }}   # [linux]
-    - {{ cdt('libxcursor-devel') }}      # [linux]
-    - {{ cdt('libxi-devel') }}           # [linux]
-    - {{ cdt('libxrandr-devel') }}       # [linux]
-    - {{ cdt('pciutils-devel') }}        # [linux]
-    - {{ cdt('libxscrnsaver-devel') }}   # [linux]
-    - {{ cdt('libxtst-devel') }}         # [linux]
-    - {{ cdt('libselinux-devel') }}      # [linux]
-    - {{ cdt('libxdamage') }}            # [linux]
-    - {{ cdt('libxdamage-devel') }}      # [linux]
-    - {{ cdt('libxfixes') }}             # [linux]
-    - {{ cdt('libxfixes-devel') }}       # [linux]
-    - {{ cdt('libxxf86vm') }}            # [linux]
-    - {{ cdt('libxrandr') }}             # [linux]
-    - {{ cdt('alsa-lib') }}              # [linux]
-    - {{ cdt('libxt-devel') }}           # [linux]
-    - {{ cdt('libsm-devel') }}           # [linux]
-    - {{ cdt('libice-devel') }}          # [linux]
-    - {{ cdt('libuuid-devel') }}         # [linux]
+    - {{ stdlib('c') }}
   host:
     - python
-    - libpng
-    - jpeg
-    - libtiff
-    - libxml2
-    - zlib
-    - freetype
+    - libgl-devel  # [linux]
+    - libegl-devel  # [linux]
+    - libglvnd-devel  # [linux]
+    - qt6-main >=6.9.3
     - libprotobuf
-    - lz4-c
-    - expat
-    - glew
-    - double-conversion
-    - jsoncpp
-    - xz
     - cgns
-    - qt
-    - pugixml
-    - libtheora
-    - gl2ps
+    - libboost-headers >=1.88
+    - libzip
+    - libcurl
+    - icu
+    - libharu
+    - vtk =={{ vtk_version }}
+    - libxml2-devel 2.14*
     - tbb-devel
-    - hdf5
   run:
     - python
     - numpy
     - scipy
-    - itk
     - marshmallow
     - jsonpatch
     - jsonpointer
     - pyfftw
     - pygments
-    - xorg-libx11
 test:
   imports:
     - paraview
+    - paraview.simple
+    - paraview.numpy_support
 
 about:
   home: https://github.com/OpenChemistry/tomviz
@@ -124,7 +67,6 @@ about:
   license_family: BSD
   license_file:
     - tomviz/LICENSE
-    - paraview/License_v1.2.txt
   summary: 'Cross platform, open source application for the processing, visualization, and analysis of 3D tomography data'
   doc_url: https://tomviz.readthedocs.io/
   dev_url: https://github.com/OpenChemistry/tomviz

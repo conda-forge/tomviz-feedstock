@@ -4,42 +4,52 @@
 # https://gitlab.kitware.com/paraview/paraview/issues/19645
 export LDFLAGS=`echo "${LDFLAGS}" | sed "s|-Wl,-dead_strip_dylibs||g"`
 
+# https://conda-forge.org/docs/maintainer/knowledge_base/#newer-c-features-with-old-sdk
+# This fixes an error we encountered compiling ParaView on macos
+export CXXFLAGS="${CXXFLAGS} -D_LIBCPP_DISABLE_AVAILABILITY"
+
+# Update submodules
+cd paraview
+git submodule update --init --recursive
+cd ..
+
+cd tomviz
+git submodule update --init --recursive
+cd ..
+
 # First build ParaView
 mkdir -p paraview-build && cd paraview-build
-cmake -G"Ninja" -DCMAKE_BUILD_TYPE:STRING=Release \
+cmake -LAH -G "Ninja" \
+  -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo \
   -DCMAKE_INSTALL_PREFIX:PATH=${PREFIX} \
   -DCMAKE_PREFIX_PATH:PATH=${PREFIX} \
   -DCMAKE_INSTALL_RPATH:STRING=${PREFIX}/lib \
   -DCMAKE_INSTALL_LIBDIR:STRING=lib \
   -DCMAKE_FIND_FRAMEWORK:STRING=LAST \
-  -DBUILD_TESTING:BOOL=OFF \
   -DPython3_FIND_STRATEGY:STRING=LOCATION \
   -DPython3_ROOT_DIR:PATH=${PREFIX} \
   -DPARAVIEW_ENABLE_CATALYST:BOOL=OFF \
-  -DPARAVIEW_ENABLE_PYTHON:BOOL=ON \
+  -DPARAVIEW_USE_PYTHON:BOOL=ON \
+  -DPARAVIEW_BUILD_WITH_EXTERNAL:BOOL=ON \
+  -DPARAVIEW_USE_EXTERNAL_VTK:BOOL=ON \
   -DPARAVIEW_ENABLE_WEB:BOOL=OFF \
-  -DPARAVIEW_ENABLE_EMBEDDED_DOCUMENTATION:BOOL=OFF\
+  -DPARAVIEW_ENABLE_EMBEDDED_DOCUMENTATION:BOOL=OFF \
   -DPARAVIEW_USE_QTHELP:BOOL=OFF \
   -DPARAVIEW_PLUGINS_DEFAULT:BOOL=OFF \
-  -DPARAVIEW_CUSTOM_LIBRARY_SUFFIX:STRING=tpv5.7 \
-  -DPARAVIEW_USE_VTKM:BOOL=OFF \
-  -DVTK_SMP_IMPLEMENTATION_TYPE:STRING=TBB \
-  -DVTK_PYTHON_VERSION:STRING=3 \
-  -DVTK_PYTHON_FULL_THREADSAFE:BOOL=ON \
-  -DVTK_NO_PYTHON_THREADS:BOOL=OFF \
-  -DVTK_MODULE_USE_EXTERNAL_VTK_hdf5:BOOL=ON \
+  -DPARAVIEW_USE_VISKORES:BOOL=OFF \
   ../paraview
 ninja install -j${CPU_COUNT}
 
 # Now build Tomviz
 cd .. && mkdir -p tomviz-build && cd tomviz-build
-cmake -G"Ninja" -DCMAKE_BUILD_TYPE:STRING=Release \
+cmake -G"Ninja" -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo \
   -DCMAKE_INSTALL_PREFIX:PATH=${PREFIX} \
   -DCMAKE_PREFIX_PATH:PATH=${PREFIX} \
   -DCMAKE_INSTALL_LIBDIR:STRING=lib \
   -DCMAKE_INSTALL_RPATH:STRING=${PREFIX}/lib \
   -DParaView_DIR:PATH=${SRC_DIR}/paraview-build \
-  -DBUILD_TESTING:BOOL=OFF \
+  -DTOMVIZ_USE_EXTERNAL_VTK:BOOL=ON \
+  -DENABLE_TESTING:BOOL=OFF \
   -DPython3_FIND_STRATEGY:STRING=LOCATION \
   -DPython3_ROOT_DIR:PATH=${PREFIX} \
   ../tomviz

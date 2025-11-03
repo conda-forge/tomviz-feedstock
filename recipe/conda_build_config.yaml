@@ -1,5 +1,9 @@
-docker_image:
-  - quay.io/condaforge/linux-anvil-comp7
+c_stdlib_version:          # [osx]
+  - 11.0                   # [osx]
+MACOSX_SDK_VERSION:        # [osx]
+  - '12.3'                 # [osx]
 
-hdf5:
-  - 1.10.6
+c_compiler:                # [win]
+  - vs2022                 # [win]
+cxx_compiler:              # [win]
+  - vs2022                 # [win]
