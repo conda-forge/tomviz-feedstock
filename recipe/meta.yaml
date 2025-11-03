@@ -38,7 +38,7 @@ requirements:
     - qt6-main >=6.9.3
     - libprotobuf
     - cgns
-    - libboost-headers
+    - libboost-headers >=1.88
     - libzip
     - libcurl
     - icu
