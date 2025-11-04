@@ -1,5 +1,5 @@
 {% set name = "tomviz" %}
-{% set version = "2.1.1" %}
+{% set version = "2.1.2" %}
 {% set paraview_version = "6.0.1" %}
 package:
   name: {{ name|lower }}
@@ -12,7 +12,7 @@ source:
   # Submodules updated in build.sh: pybind11
 
 build:
-  number: 2
+  number: 0
   # Skip Python3.14 until ParaView has packages for it
   skip: true  # [py == 314]
 
