@@ -29,6 +29,7 @@ requirements:
     - python
     - paraview =={{ paraview_version }}
     - vtk
+    - libxml2-devel 2.14*
   run:
     - python
     - numpy
