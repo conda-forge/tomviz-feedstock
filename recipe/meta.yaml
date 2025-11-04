@@ -1,7 +1,6 @@
 {% set name = "tomviz" %}
 {% set version = "2.1.1" %}
-{% set paraview_version = "v6.0.1" %}
-{% set vtk_version = "9.5.2" %}
+{% set paraview_version = "6.0.1" %}
 package:
   name: {{ name|lower }}
   version: {{ version }}
@@ -12,40 +11,25 @@ source:
     folder: tomviz
   # Submodules updated in build.sh: pybind11
 
-  - git_url: https://gitlab.kitware.com/paraview/paraview.git
-    git_rev: {{ paraview_version }}
-    folder: paraview
-  # Submodules updated in build.sh: VTK, VisItBridge, QtTesting, catalyst
-
 build:
-  number: 0
+  number: 1
   # Skip windows for now, until we fix the build for it
-  skip: true  # [win]
+  # Skip Python3.14 until ParaView has packages for it
+  skip: true  # [win or py == 314]
 
 requirements:
   build:
     - cmake
     - ninja
-    - pkg-config
+    - git-lfs
     - {{ compiler('c') }}
     - {{ compiler('cxx') }}
     - {{ stdlib('c') }}
   host:
     - python
-    - libgl-devel  # [linux]
-    - libegl-devel  # [linux]
-    - libglvnd-devel  # [linux]
-    - qt6-main >=6.9.3
-    - libprotobuf
-    - cgns
-    - libboost-headers >=1.88
-    - libzip
-    - libcurl
-    - icu
-    - libharu
-    - vtk =={{ vtk_version }}
+    - paraview =={{ paraview_version }}
+    - vtk
     - libxml2-devel 2.14*
-    - tbb-devel
   run:
     - python
     - numpy
