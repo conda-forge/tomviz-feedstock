@@ -18,7 +18,7 @@ source:
   # Submodules updated in build.sh: VTK, VisItBridge, QtTesting, catalyst
 
 build:
-  number: 0
+  number: 1
   # Skip windows for now, until we fix the build for it
   skip: true  # [win]
 
