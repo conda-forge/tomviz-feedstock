@@ -7,7 +7,7 @@ git submodule update --init --recursive
 cd ..
 
 :: Build Tomviz
-cd .. && mkdir tomviz-build && cd tomviz-build
+mkdir tomviz-build && cd tomviz-build
 cmake -G"Ninja" -DCMAKE_BUILD_TYPE=RelWithDebInfo ^
   -DCMAKE_INSTALL_PREFIX:PATH="%PREFIX%" ^
   -DCMAKE_PREFIX_PATH:PATH="%LIBRARY_PREFIX%" ^
