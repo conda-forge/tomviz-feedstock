@@ -1,5 +1,5 @@
 {% set name = "tomviz" %}
-{% set version = "2.2.0" %}
+{% set version = "2.2.1" %}
 {% set paraview_version = "6.0.1" %}
 package:
   name: {{ name|lower }}
@@ -14,7 +14,8 @@ source:
 build:
   number: 0
   # Skip Python3.14 until ParaView has packages for it
-  skip: true  # [py == 314]
+  # Windows is also not working right now...
+  skip: true  # [py == 314 or win]
 
 requirements:
   build:
