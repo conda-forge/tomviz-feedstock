@@ -1,5 +1,5 @@
 {% set name = "tomviz" %}
-{% set version = "2.2.1" %}
+{% set version = "2.2.2" %}
 {% set paraview_version = "6.0.1" %}
 package:
   name: {{ name|lower }}
