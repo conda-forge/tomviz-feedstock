@@ -12,7 +12,7 @@ source:
   # Submodules updated in build.sh: pybind11
 
 build:
-  number: 0
+  number: 1
   # Skip Python3.14 until ParaView has packages for it
   # Windows is also not working right now...
   skip: true  # [py == 314 or win]
