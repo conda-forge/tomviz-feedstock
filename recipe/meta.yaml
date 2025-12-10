@@ -1,8 +1,11 @@
 {% set name = "tomviz" %}
 {% set version = "2.2.2" %}
 {% set paraview_version = "6.0.1" %}
+{% set python_min = "3.10" %}
+{% set build_number = "1" %}
+
 package:
-  name: {{ name|lower }}
+  name: {{ name|lower }}-split
   version: {{ version }}
 
 source:
@@ -12,44 +15,119 @@ source:
   # Submodules updated in build.sh: pybind11
 
 build:
-  number: 0
-  # Skip Python3.14 until ParaView has packages for it
-  # Windows is also not working right now...
-  skip: true  # [py == 314 or win]
+  number: {{ build_number }}
 
-requirements:
-  build:
-    - cmake
-    - ninja
-    - git-lfs
-    - {{ compiler('c') }}
-    - {{ compiler('cxx') }}
-    - {{ stdlib('c') }}
-  host:
-    - python
-    - paraview =={{ paraview_version }}
-    - vtk
-    - libxml2-devel 2.14*
-  run:
-    - python
-    - numpy
-    - scipy
-    - h5py
-    - click
-    - tqdm
-    - marshmallow
-    - jsonpatch
-    - jsonpointer
-    - pyfftw
-    - pygments
-test:
-  imports:
-    - paraview
-    - paraview.simple
-    - paraview.numpy_support
-    - tomviz
-    - tomviz.cli
+outputs:
+  # First output: main tomviz desktop application
+  - name: tomviz
+    script: build_tomviz.sh   # [unix]
+    script: build_tomviz.bat  # [win]
+    build:
+      number: {{ build_number }}
+      # Skip Python3.14 until ParaView has packages for it
+      # Windows is also not working right now...
+      skip: true  # [py == 314 or win]
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ compiler('cxx') }}
+        - {{ stdlib('c') }}
+        - cmake
+        - ninja
+        - git
+      host:
+        - python
+        - paraview =={{ paraview_version }}
+        - vtk
+        - libxml2-devel 2.14*
+      run:
+        - python
+        - numpy
+        - scipy
+        - h5py
+        - click
+        - tqdm
+        - marshmallow
+        - jsonpatch
+        - jsonpointer
+        - pyfftw
+        - pygments
+    test:
+      imports:
+        - paraview
+        - paraview.simple
+        - paraview.numpy_support
+        - tomviz
+        - tomviz.cli
+    about:
+      home: https://github.com/OpenChemistry/tomviz
+      license: BSD-3-Clause
+      license_family: BSD
+      license_file:
+        - tomviz/LICENSE
+      summary: 'Cross platform, open source application for the processing, visualization, and analysis of 3D tomography data'
+      doc_url: https://tomviz.readthedocs.io/
+      dev_url: https://github.com/OpenChemistry/tomviz
 
+  # Second output: tomviz-pipeline Python package
+  - name: tomviz-pipeline
+    script: build_tomviz-pipeline.sh   # [unix]
+    script: build_tomviz-pipeline.bat  # [win]
+    build:
+      number: {{ build_number }}
+      noarch: python
+      skip: true  # [not linux or py != 310]  # Only build once on py310 for Linux
+      entry_points:
+        - tomviz-pipeline = tomviz.cli:main
+    requirements:
+      host:
+        - python {{ python_min }}
+        - pip
+        - setuptools
+      run:
+        - python >={{ python_min }}
+        - numpy
+        - scipy
+        - h5py
+        - click
+        - tqdm
+        - marshmallow
+        - jsonpatch
+        - jsonpointer
+        - pyfftw
+    test:
+      imports:
+        - tomviz
+        - tomviz.cli
+        - tomviz.operators
+      commands:
+        - tomviz-pipeline --help
+        - python -c "import tomviz; print('tomviz imported successfully')"
+      requires:
+        - python {{ python_min }}
+        - pip
+    about:
+      home: https://github.com/OpenChemistry/tomviz
+      license: BSD-3-Clause
+      license_family: BSD
+      license_file:
+        - tomviz/LICENSE
+      summary: 'Python pipeline execution tools for tomviz'
+      description: |
+        This package provides the Python pipeline execution tools from the Tomviz
+        project, enabling command-line execution of tomviz operators and pipelines
+        without the full GUI application. It includes the tomviz Python library and
+        the tomviz-pipeline command-line tool for processing tomographic data.
+
+        This package is also required when using the Tomviz Desktop application's
+        ExternalPython execution mode, where pipelines run in a separate conda
+        environment from the main application. The package must be installed
+        in that separate conda environment.
+      doc_url: https://tomviz.readthedocs.io/en/latest/pipelines.html
+      dev_url: https://github.com/OpenChemistry/tomviz
+
+# This extra "about" section is a requirement by conda-forge, even
+# though it's not actually used.
 about:
   home: https://github.com/OpenChemistry/tomviz
   license: BSD-3-Clause
@@ -61,6 +139,7 @@ about:
   dev_url: https://github.com/OpenChemistry/tomviz
 
 extra:
+  feedstock-name: tomviz
   recipe-maintainers:
     - cjh1
     - psavery
