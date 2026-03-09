@@ -1,5 +1,5 @@
 {% set name = "tomviz" %}
-{% set version = "2.2.3" %}
+{% set version = "2.3.0" %}
 {% set paraview_version = "6.0.1" %}
 {% set python_min = "3.10" %}
 {% set build_number = "0" %}
