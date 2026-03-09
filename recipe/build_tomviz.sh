@@ -12,6 +12,13 @@ cd tomviz
 git submodule update --init --recursive
 cd ..
 
+# FIXME: setting the zlib paths manually shouldn't be necessary forever.
+# Try removing it sometime.
+ZLIB_ARGS=""
+if [ "$(uname)" = "Linux" ]; then
+  ZLIB_ARGS="-DZLIB_LIBRARY=${PREFIX}/lib/libz.so.1 -DZLIB_INCLUDE_DIR=${PREFIX}/include"
+fi
+
 # Build Tomviz
 mkdir -p tomviz-build && cd tomviz-build
 cmake -G"Ninja" -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo \
@@ -23,5 +30,6 @@ cmake -G"Ninja" -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo \
   -DENABLE_TESTING:BOOL=OFF \
   -DPython3_FIND_STRATEGY:STRING=LOCATION \
   -DPython3_ROOT_DIR:PATH=${PREFIX} \
+  ${ZLIB_ARGS} \
   ../tomviz
 ninja install -j${CPU_COUNT}
