@@ -19,4 +19,4 @@ python_min:
 target_platform:
 - win-64
 vtk:
-- 9.6.0
+- '9.6'
