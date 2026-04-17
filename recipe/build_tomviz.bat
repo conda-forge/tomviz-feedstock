@@ -19,6 +19,8 @@ cmake -G"Ninja" -DCMAKE_BUILD_TYPE=RelWithDebInfo ^
   -DENABLE_TESTING:BOOL=OFF ^
   -DPython3_FIND_STRATEGY:STRING=LOCATION ^
   -DPython3_ROOT_DIR:PATH="%PREFIX%" ^
+  -DZLIB_LIBRARY:FILEPATH="%LIBRARY_PREFIX%\lib\zlib.lib" ^
+  -DZLIB_INCLUDE_DIR:PATH="%LIBRARY_PREFIX%\include" ^
   ..\tomviz
 if errorlevel 1 exit 1
 
