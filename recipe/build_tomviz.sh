@@ -15,10 +15,14 @@ cd ..
 # FIXME: setting the zlib paths manually shouldn't be necessary forever.
 # Try removing it sometime.
 ZLIB_ARGS=""
+PLATFORM_ARGS=""
 if [ "$(uname)" = "Linux" ]; then
   ZLIB_ARGS="-DZLIB_LIBRARY=${PREFIX}/lib/libz.so.1 -DZLIB_INCLUDE_DIR=${PREFIX}/include"
 elif [ "$(uname)" = "Darwin" ]; then
   ZLIB_ARGS="-DZLIB_LIBRARY=${PREFIX}/lib/libz.dylib -DZLIB_INCLUDE_DIR=${PREFIX}/include"
+  # Fix empty CFBundleIdentifier which breaks native macOS dialogs
+  # (file open, about, etc.) See: https://github.com/OpenChemistry/tomviz/issues/2299
+  PLATFORM_ARGS="-DMACOSX_BUNDLE_GUI_IDENTIFIER=org.tomviz.tomviz"
 fi
 
 # Build Tomviz
@@ -33,5 +37,12 @@ cmake -G"Ninja" -DCMAKE_BUILD_TYPE:STRING=RelWithDebInfo \
   -DPython3_FIND_STRATEGY:STRING=LOCATION \
   -DPython3_ROOT_DIR:PATH=${PREFIX} \
   ${ZLIB_ARGS} \
+  ${PLATFORM_ARGS} \
   ../tomviz
 ninja install -j${CPU_COUNT}
+
+# On macOS, the binary is inside the app bundle. Add a relative symlink
+# so users can run "tomviz" from the command line.
+if [ "$(uname)" = "Darwin" ]; then
+  ln -sf ../Applications/tomviz.app/Contents/MacOS/tomviz ${PREFIX}/bin/tomviz
+fi
