@@ -17,6 +17,8 @@ cd ..
 ZLIB_ARGS=""
 if [ "$(uname)" = "Linux" ]; then
   ZLIB_ARGS="-DZLIB_LIBRARY=${PREFIX}/lib/libz.so.1 -DZLIB_INCLUDE_DIR=${PREFIX}/include"
+elif [ "$(uname)" = "Darwin" ]; then
+  ZLIB_ARGS="-DZLIB_LIBRARY=${PREFIX}/lib/libz.dylib -DZLIB_INCLUDE_DIR=${PREFIX}/include"
 fi
 
 # Build Tomviz

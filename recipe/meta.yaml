@@ -1,6 +1,6 @@
 {% set name = "tomviz" %}
-{% set version = "2.3.0" %}
-{% set paraview_version = "6.0.1" %}
+{% set version = "2.3.1" %}
+{% set paraview_version = "6.1.0" %}
 {% set python_min = "3.10" %}
 {% set build_number = "0" %}
 
@@ -24,9 +24,7 @@ outputs:
     script: build_tomviz.bat  # [win]
     build:
       number: {{ build_number }}
-      # Skip Python3.14 until ParaView has packages for it
-      # Windows is also not working right now...
-      skip: true  # [py == 314 or win]
+      skip: false
     requirements:
       build:
         - {{ compiler('c') }}

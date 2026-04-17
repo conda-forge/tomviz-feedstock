@@ -4,3 +4,8 @@ github:
   tooling_branch_name: main
 conda_build:
   pkg_format: '2'
+provider:
+  linux_64: azure
+  osx_64: azure
+  osx_arm64: azure
+  win_64: azure
