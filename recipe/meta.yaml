@@ -2,7 +2,7 @@
 {% set version = "2.3.1" %}
 {% set paraview_version = "6.1.0" %}
 {% set python_min = "3.10" %}
-{% set build_number = "0" %}
+{% set build_number = 1 %}
 
 package:
   name: {{ name|lower }}-split
