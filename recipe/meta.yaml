@@ -13,7 +13,7 @@ source:
     git_rev: {{ version }}
     folder: tomviz
     patches:
-      - fix-tbb-linking.patch
+      - conda-fixes.patch
   # Submodules updated in build.sh: pybind11
 
 build:
@@ -63,14 +63,12 @@ outputs:
         - tomviz._wrapping
         - tomviz._realtime.ctvlib
       commands:
-        - test -f $PREFIX/bin/tomviz  # [linux]
-        - test -f $PREFIX/lib/libtomvizcore${SHLIB_EXT}  # [linux]
+        - test -f $PREFIX/bin/tomviz  # [unix]
+        - test -f $PREFIX/lib/libtomvizcore${SHLIB_EXT}  # [unix]
         - "! ldd $PREFIX/bin/tomviz | grep 'not found'"  # [linux]
         - "! ldd $PREFIX/lib/libtomvizcore${SHLIB_EXT} | grep 'not found'"  # [linux]
-        - test -e $PREFIX/bin/tomviz  # [osx]
-        - test -f $PREFIX/Applications/tomviz.app/Contents/lib/libtomvizcore${SHLIB_EXT}  # [osx]
         - "! otool -L $PREFIX/bin/tomviz | grep 'not found'"  # [osx]
-        - "! otool -L $PREFIX/Applications/tomviz.app/Contents/lib/libtomvizcore${SHLIB_EXT} | grep 'not found'"  # [osx]
+        - "! otool -L $PREFIX/lib/libtomvizcore${SHLIB_EXT} | grep 'not found'"  # [osx]
         - if not exist %LIBRARY_BIN%\\tomviz.exe exit 1  # [win]
         - if not exist %LIBRARY_BIN%\\tomvizcore.dll exit 1  # [win]
     about:
