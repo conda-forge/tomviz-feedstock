@@ -26,3 +26,6 @@ if errorlevel 1 exit 1
 
 cmake --build . --target install --config Release --parallel %CPU_COUNT%
 if errorlevel 1 exit 1
+
+:: Install PDB debug symbols alongside binaries for post-mortem debugging
+for /R . %%f in (*.pdb) do copy /Y "%%f" "%LIBRARY_BIN%\" 2>nul

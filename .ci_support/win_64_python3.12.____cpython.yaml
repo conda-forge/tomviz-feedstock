@@ -18,5 +18,7 @@ python_min:
 - '3.10'
 target_platform:
 - win-64
+tbb_devel:
+- '2022'
 vtk:
 - '9.6'
