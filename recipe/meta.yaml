@@ -12,6 +12,8 @@ source:
   - git_url: https://github.com/OpenChemistry/tomviz
     git_rev: {{ version }}
     folder: tomviz
+    patches:
+      - fix-tbb-linking.patch
   # Submodules updated in build.sh: pybind11
 
 build:
@@ -37,6 +39,7 @@ outputs:
         - python
         - paraview =={{ paraview_version }}
         - vtk
+        - tbb-devel
         - libxml2-devel 2.14*
       run:
         - python
