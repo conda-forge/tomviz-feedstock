@@ -59,16 +59,19 @@ diff --git a/tomviz/loguru/loguru.cpp b/tomviz/loguru/loguru.cpp
 index 431a9715..94a3c76c 100644
 --- a/tomviz/loguru/loguru.cpp
 +++ b/tomviz/loguru/loguru.cpp
-@@ -54,6 +54,8 @@
- 
+@@ -54,6 +54,11 @@
+
  #ifdef _WIN32
  	#include <direct.h>
++	#define WIN32_LEAN_AND_MEAN
++	#define NOMINMAX
++	#include <windows.h>
 +	#include <dbghelp.h>
 +	#include <shlobj.h>
  
  	#define localtime_r(a, b) localtime_s(b, a) // No localtime_r with MSVC, but arguments are swapped for localtime_s
  #else
-@@ -1900,10 +1902,171 @@ namespace loguru
+@@ -1900,10 +1905,171 @@ namespace loguru
  
  #ifdef _WIN32
  namespace loguru {
