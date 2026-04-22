@@ -71,7 +71,7 @@ index 431a9715..94a3c76c 100644
  
  	#define localtime_r(a, b) localtime_s(b, a) // No localtime_r with MSVC, but arguments are swapped for localtime_s
  #else
-@@ -1900,10 +1905,171 @@ namespace loguru
+@@ -1900,10 +1905,279 @@ namespace loguru
  
  #ifdef _WIN32
  namespace loguru {
@@ -214,8 +214,14 @@ index 431a9715..94a3c76c 100644
 +
 +			DWORD written;
 +			WriteFile(log_file, buf, (DWORD)len, &written, NULL);
++			CloseHandle(log_file);
++		}
 +
-+			// Write stack trace
++		// Walk the stack into a reusable buffer
++		char stack_buf[8192];
++		int stack_len = 0;
++		int num_frames = 0;
++		{
 +			HANDLE process = GetCurrentProcess();
 +			HANDLE thread = GetCurrentThread();
 +			SymInitialize(process, NULL, TRUE);
@@ -228,9 +234,6 @@ index 431a9715..94a3c76c 100644
 +			frame.AddrFrame.Mode = AddrModeFlat;
 +			frame.AddrStack.Offset = ctx.Rsp;
 +			frame.AddrStack.Mode = AddrModeFlat;
-+
-+			const char* hdr = "\r\nStack Trace:\r\n";
-+			WriteFile(log_file, hdr, (DWORD)strlen(hdr), &written, NULL);
 +
 +			char sym_buf[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)];
 +			SYMBOL_INFO* symbol = (SYMBOL_INFO*)sym_buf;
@@ -245,9 +248,9 @@ index 431a9715..94a3c76c 100644
 +				}
 +				if (frame.AddrPC.Offset == 0) break;
 +
-+				char line[512];
-+				int line_len = 0;
 +				DWORD64 displacement = 0;
++				int remaining = (int)sizeof(stack_buf) - stack_len - 1;
++				if (remaining < 128) break;
 +
 +				// Get module name
 +				HMODULE hModule = NULL;
@@ -257,7 +260,6 @@ index 431a9715..94a3c76c 100644
 +					GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
 +					(LPCSTR)(uintptr_t)frame.AddrPC.Offset, &hModule)) {
 +					GetModuleFileNameA(hModule, mod_name, MAX_PATH);
-+					// Extract just the filename
 +					char* slash = strrchr(mod_name, '\\');
 +					if (slash) memmove(mod_name, slash + 1, strlen(slash + 1) + 1);
 +				}
@@ -267,46 +269,76 @@ index 431a9715..94a3c76c 100644
 +					file_line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
 +					DWORD line_disp = 0;
 +					if (SymGetLineFromAddr64(process, frame.AddrPC.Offset, &line_disp, &file_line)) {
-+						line_len = sprintf_s(line, sizeof(line),
++						stack_len += sprintf_s(stack_buf + stack_len, remaining,
 +							"  [%2d] %s!%s+0x%llX (%s:%lu)\r\n",
 +							i, mod_name, symbol->Name,
 +							(unsigned long long)displacement,
 +							file_line.FileName, file_line.LineNumber);
 +					} else {
-+						line_len = sprintf_s(line, sizeof(line),
++						stack_len += sprintf_s(stack_buf + stack_len, remaining,
 +							"  [%2d] %s!%s+0x%llX\r\n",
 +							i, mod_name, symbol->Name,
 +							(unsigned long long)displacement);
 +					}
 +				} else {
-+					line_len = sprintf_s(line, sizeof(line),
++					stack_len += sprintf_s(stack_buf + stack_len, remaining,
 +						"  [%2d] %s!0x%llX\r\n",
 +						i, mod_name,
 +						(unsigned long long)frame.AddrPC.Offset);
 +				}
-+
-+				WriteFile(log_file, line, (DWORD)line_len, &written, NULL);
++				num_frames++;
 +			}
 +
 +			SymCleanup(process);
++		}
 +
++		// Append stack trace to the log file
++		HANDLE log_reopen = CreateFileW(log_path, FILE_APPEND_DATA, 0, NULL,
++			OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
++		if (log_reopen != INVALID_HANDLE_VALUE) {
++			DWORD written;
++			const char* hdr = "\r\nStack Trace:\r\n";
++			WriteFile(log_reopen, hdr, (DWORD)strlen(hdr), &written, NULL);
++			WriteFile(log_reopen, stack_buf, (DWORD)stack_len, &written, NULL);
 +			const char* footer =
 +				"\r\nA minidump file has been saved alongside this log.\r\n"
 +				"Please send both files to the tomviz developers for analysis.\r\n";
-+			WriteFile(log_file, footer, (DWORD)strlen(footer), &written, NULL);
-+			CloseHandle(log_file);
++			WriteFile(log_reopen, footer, (DWORD)strlen(footer), &written, NULL);
++			CloseHandle(log_reopen);
 +		}
 +
-+		// Also try to show a message box so the user knows a dump was saved
-+		wchar_t wmsg[512];
++		// Show dialog with stack trace (truncated to first 15 frames for display)
 +		const char* code_name = exception_code_name(code);
 +		wchar_t wcode_name[64];
 +		MultiByteToWideChar(CP_UTF8, 0, code_name, -1, wcode_name, 64);
-+		_snwprintf_s(wmsg, 512, _TRUNCATE,
++
++		// Convert stack trace to wide chars, truncated to first 15 frames
++		// (most recent / crash-site frames) for display
++		char display_stack[8192];
++		int display_len = 0;
++		int display_frames = 0;
++		const int max_display_frames = 8;
++		for (int i = 0; i < stack_len && display_frames < max_display_frames; ++i) {
++			display_stack[display_len++] = stack_buf[i];
++			if (stack_buf[i] == '\n') display_frames++;
++		}
++		if (num_frames > max_display_frames) {
++			display_len += sprintf_s(display_stack + display_len,
++				sizeof(display_stack) - display_len,
++				"  ... (%d more frames in log file)\r\n",
++				num_frames - max_display_frames);
++		}
++		display_stack[display_len] = '\0';
++		wchar_t wstack[4096];
++		MultiByteToWideChar(CP_UTF8, 0, display_stack, -1, wstack, 4096);
++
++		wchar_t wmsg[5120];
++		_snwprintf_s(wmsg, 5120, _TRUNCATE,
 +			L"Tomviz has crashed (%s).\n\n"
++			L"Stack Trace:\n%s\n"
 +			L"Crash dump files have been saved to:\n%s\n\n"
 +			L"Please send these files to the developers.",
-+			wcode_name, crash_dir);
++			wcode_name, wstack, crash_dir);
 +		MessageBoxW(NULL, wmsg, L"Tomviz Crash", MB_OK | MB_ICONERROR);
 +
 +		return EXCEPTION_EXECUTE_HANDLER;
