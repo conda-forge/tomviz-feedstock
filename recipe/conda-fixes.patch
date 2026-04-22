@@ -1,0 +1,366 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 102412bc..8af3b319 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -54,8 +54,12 @@ set(tomviz_js_binary_path "${tomviz_html_binary_dir}/tomviz.js")
+ set(tomviz_html_binary_path "${tomviz_html_binary_dir}/tomviz.html")
+ set(tomviz_web_install_dir "${INSTALL_DATA_DIR}/tomviz/web")
+ 
+-# Centrally set the grand exception for macOS...
+ if(APPLE)
++  option(TOMVIZ_MACOSX_BUNDLE "Build a macOS app bundle" ON)
++endif()
++
++# Centrally set the grand exception for macOS...
++if(APPLE AND TOMVIZ_MACOSX_BUNDLE)
+   set(MACOSX_BUNDLE_NAME "tomviz")
+   set(prefix "Applications/${MACOSX_BUNDLE_NAME}.app/Contents")
+   set(INSTALL_INCLUDE_DIR "${prefix}/${INSTALL_INCLUDE_DIR}")
+diff --git a/tomviz/CMakeLists.txt b/tomviz/CMakeLists.txt
+index 6a88e0e2..474b0913 100644
+--- a/tomviz/CMakeLists.txt
++++ b/tomviz/CMakeLists.txt
+@@ -745,7 +745,7 @@ install(FILES "${tomviz_SOURCE_DIR}/docs/TomvizBasicUserGuide.pdf"
+   DESTINATION "${tomviz_data_install_dir}/docs"
+   COMPONENT "Documentation")
+ 
+-if(APPLE)
++if(APPLE AND TOMVIZ_MACOSX_BUNDLE)
+   list(APPEND exec_sources icons/tomviz.icns)
+   set(MACOSX_BUNDLE_ICON_FILE tomviz.icns)
+   set(MACOSX_BUNDLE_BUNDLE_VERSION "${tomviz_version}")
+@@ -774,7 +774,11 @@ set_target_properties(tomvizlib PROPERTIES ENABLE_EXPORTS TRUE)
+ 
+ set_property(TARGET tomvizlib PROPERTY POSITION_INDEPENDENT_CODE TRUE)
+ 
+-add_executable(tomviz WIN32 MACOSX_BUNDLE ${exec_sources} resources.qrc)
++if(APPLE AND TOMVIZ_MACOSX_BUNDLE)
++  add_executable(tomviz MACOSX_BUNDLE ${exec_sources} resources.qrc)
++else()
++  add_executable(tomviz WIN32 ${exec_sources} resources.qrc)
++endif()
+ target_link_libraries(tomviz PRIVATE tomvizlib ${OPENGL_LIBRARIES} ${extra_link_libraries})
+ 
+ # Need to set this property so that in stack traces, tomviz symbols
+@@ -801,9 +805,10 @@ target_link_libraries(tomvizlib
+     Qt6::Network
+   PRIVATE
+     Qt6::Core5Compat
+-    Python3::Python)
++    Python3::Python
++    $<$<PLATFORM_ID:Windows>:dbghelp shell32>)
+ 
+-if(APPLE)
++if(APPLE AND TOMVIZ_MACOSX_BUNDLE)
+   set_target_properties(tomviz
+     PROPERTIES
+       MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/tomviz.plist.in)
+diff --git a/tomviz/loguru/loguru.cpp b/tomviz/loguru/loguru.cpp
+index 431a9715..94a3c76c 100644
+--- a/tomviz/loguru/loguru.cpp
++++ b/tomviz/loguru/loguru.cpp
+@@ -54,6 +54,11 @@
+
+ #ifdef _WIN32
+ 	#include <direct.h>
++	#define WIN32_LEAN_AND_MEAN
++	#define NOMINMAX
++	#include <windows.h>
++	#include <dbghelp.h>
++	#include <shlobj.h>
+ 
+ 	#define localtime_r(a, b) localtime_s(b, a) // No localtime_r with MSVC, but arguments are swapped for localtime_s
+ #else
+@@ -1900,10 +1905,171 @@ namespace loguru
+ 
+ #ifdef _WIN32
+ namespace loguru {
++
++	static bool create_directory_recursive(const wchar_t* path)
++	{
++		DWORD attrs = GetFileAttributesW(path);
++		if (attrs != INVALID_FILE_ATTRIBUTES) {
++			return (attrs & FILE_ATTRIBUTE_DIRECTORY) != 0;
++		}
++
++		wchar_t parent[MAX_PATH];
++		wcscpy_s(parent, path);
++		wchar_t* last_sep = wcsrchr(parent, L'\\');
++		if (!last_sep) last_sep = wcsrchr(parent, L'/');
++		if (last_sep) {
++			*last_sep = L'\0';
++			if (!create_directory_recursive(parent)) return false;
++		}
++
++		return CreateDirectoryW(path, NULL) || GetLastError() == ERROR_ALREADY_EXISTS;
++	}
++
++	static bool get_crash_dump_dir(wchar_t* out_path, size_t max_len)
++	{
++		wchar_t appdata[MAX_PATH];
++		if (SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, 0, appdata))) {
++			_snwprintf_s(out_path, max_len, _TRUNCATE, L"%s\\tomviz\\crashes", appdata);
++			return create_directory_recursive(out_path);
++		}
++		return false;
++	}
++
++	static const char* exception_code_name(DWORD code)
++	{
++		switch (code) {
++			case EXCEPTION_ACCESS_VIOLATION:      return "EXCEPTION_ACCESS_VIOLATION";
++			case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:  return "EXCEPTION_ARRAY_BOUNDS_EXCEEDED";
++			case EXCEPTION_BREAKPOINT:             return "EXCEPTION_BREAKPOINT";
++			case EXCEPTION_DATATYPE_MISALIGNMENT:  return "EXCEPTION_DATATYPE_MISALIGNMENT";
++			case EXCEPTION_FLT_DENORMAL_OPERAND:   return "EXCEPTION_FLT_DENORMAL_OPERAND";
++			case EXCEPTION_FLT_DIVIDE_BY_ZERO:     return "EXCEPTION_FLT_DIVIDE_BY_ZERO";
++			case EXCEPTION_FLT_INEXACT_RESULT:     return "EXCEPTION_FLT_INEXACT_RESULT";
++			case EXCEPTION_FLT_INVALID_OPERATION:  return "EXCEPTION_FLT_INVALID_OPERATION";
++			case EXCEPTION_FLT_OVERFLOW:           return "EXCEPTION_FLT_OVERFLOW";
++			case EXCEPTION_FLT_STACK_CHECK:        return "EXCEPTION_FLT_STACK_CHECK";
++			case EXCEPTION_FLT_UNDERFLOW:          return "EXCEPTION_FLT_UNDERFLOW";
++			case EXCEPTION_GUARD_PAGE:             return "EXCEPTION_GUARD_PAGE";
++			case EXCEPTION_ILLEGAL_INSTRUCTION:    return "EXCEPTION_ILLEGAL_INSTRUCTION";
++			case EXCEPTION_IN_PAGE_ERROR:          return "EXCEPTION_IN_PAGE_ERROR";
++			case EXCEPTION_INT_DIVIDE_BY_ZERO:     return "EXCEPTION_INT_DIVIDE_BY_ZERO";
++			case EXCEPTION_INT_OVERFLOW:           return "EXCEPTION_INT_OVERFLOW";
++			case EXCEPTION_INVALID_DISPOSITION:    return "EXCEPTION_INVALID_DISPOSITION";
++			case EXCEPTION_NONCONTINUABLE_EXCEPTION: return "EXCEPTION_NONCONTINUABLE_EXCEPTION";
++			case EXCEPTION_PRIV_INSTRUCTION:       return "EXCEPTION_PRIV_INSTRUCTION";
++			case EXCEPTION_SINGLE_STEP:            return "EXCEPTION_SINGLE_STEP";
++			case EXCEPTION_STACK_OVERFLOW:         return "EXCEPTION_STACK_OVERFLOW";
++			default:                               return "UNKNOWN_EXCEPTION";
++		}
++	}
++
++	static LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS* exception_info)
++	{
++		DWORD code = exception_info->ExceptionRecord->ExceptionCode;
++
++		// Skip C++ exceptions (0xE06D7363 = "msc" in little-endian) and
++		// non-fatal exceptions like OUTPUT_DEBUG_STRING
++		if (code == 0xE06D7363 || (code & 0x80000000) == 0) {
++			return EXCEPTION_CONTINUE_SEARCH;
++		}
++
++		wchar_t crash_dir[MAX_PATH];
++		if (!get_crash_dump_dir(crash_dir, MAX_PATH)) {
++			return EXCEPTION_CONTINUE_SEARCH;
++		}
++
++		SYSTEMTIME st;
++		GetLocalTime(&st);
++
++		// Write minidump
++		wchar_t dump_path[MAX_PATH];
++		_snwprintf_s(dump_path, MAX_PATH, _TRUNCATE,
++			L"%s\\tomviz_%04d%02d%02d_%02d%02d%02d.dmp",
++			crash_dir, st.wYear, st.wMonth, st.wDay,
++			st.wHour, st.wMinute, st.wSecond);
++
++		HANDLE dump_file = CreateFileW(dump_path, GENERIC_WRITE, 0, NULL,
++			CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
++
++		if (dump_file != INVALID_HANDLE_VALUE) {
++			MINIDUMP_EXCEPTION_INFORMATION mei;
++			mei.ThreadId = GetCurrentThreadId();
++			mei.ExceptionPointers = exception_info;
++			mei.ClientPointers = FALSE;
++
++			MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(),
++				dump_file,
++				static_cast<MINIDUMP_TYPE>(MiniDumpWithDataSegs | MiniDumpWithHandleData),
++				&mei, NULL, NULL);
++			CloseHandle(dump_file);
++		}
++
++		// Write human-readable crash log
++		wchar_t log_path[MAX_PATH];
++		_snwprintf_s(log_path, MAX_PATH, _TRUNCATE,
++			L"%s\\tomviz_%04d%02d%02d_%02d%02d%02d.log",
++			crash_dir, st.wYear, st.wMonth, st.wDay,
++			st.wHour, st.wMinute, st.wSecond);
++
++		HANDLE log_file = CreateFileW(log_path, GENERIC_WRITE, 0, NULL,
++			CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
++
++		if (log_file != INVALID_HANDLE_VALUE) {
++			char buf[2048];
++			int len = 0;
++
++			len += sprintf_s(buf + len, sizeof(buf) - len,
++				"Tomviz Crash Report\r\n");
++			len += sprintf_s(buf + len, sizeof(buf) - len,
++				"====================\r\n\r\n");
++			len += sprintf_s(buf + len, sizeof(buf) - len,
++				"Time: %04d-%02d-%02d %02d:%02d:%02d\r\n",
++				st.wYear, st.wMonth, st.wDay,
++				st.wHour, st.wMinute, st.wSecond);
++			len += sprintf_s(buf + len, sizeof(buf) - len,
++				"Exception Code: 0x%08lX (%s)\r\n",
++				code, exception_code_name(code));
++			len += sprintf_s(buf + len, sizeof(buf) - len,
++				"Exception Address: 0x%p\r\n",
++				exception_info->ExceptionRecord->ExceptionAddress);
++
++			if (code == EXCEPTION_ACCESS_VIOLATION &&
++				exception_info->ExceptionRecord->NumberParameters >= 2) {
++				const char* op = exception_info->ExceptionRecord->ExceptionInformation[0] == 0
++					? "reading" : "writing";
++				len += sprintf_s(buf + len, sizeof(buf) - len,
++					"Access violation %s address: 0x%llX\r\n",
++					op, (unsigned long long)exception_info->ExceptionRecord->ExceptionInformation[1]);
++			}
++
++			len += sprintf_s(buf + len, sizeof(buf) - len,
++				"\r\nA minidump file has been saved alongside this log.\r\n"
++				"Please send both files to the tomviz developers for analysis.\r\n");
++
++			DWORD written;
++			WriteFile(log_file, buf, (DWORD)len, &written, NULL);
++			CloseHandle(log_file);
++		}
++
++		// Also try to show a message box so the user knows a dump was saved
++		wchar_t wmsg[512];
++		const char* code_name = exception_code_name(code);
++		wchar_t wcode_name[64];
++		MultiByteToWideChar(CP_UTF8, 0, code_name, -1, wcode_name, 64);
++		_snwprintf_s(wmsg, 512, _TRUNCATE,
++			L"Tomviz has crashed (%s).\n\n"
++			L"Crash dump files have been saved to:\n%s\n\n"
++			L"Please send these files to the developers.",
++			wcode_name, crash_dir);
++		MessageBoxW(NULL, wmsg, L"Tomviz Crash", MB_OK | MB_ICONERROR);
++
++		return EXCEPTION_EXECUTE_HANDLER;
++	}
++
+ 	void install_signal_handlers(const SignalOptions& signal_options)
+ 	{
+-		(void)signal_options;
+-		// TODO: implement signal handlers on windows
++		s_signal_options = signal_options;
++		SetUnhandledExceptionFilter(windows_exception_handler);
+ 	}
+ } // namespace loguru
+ 
+diff --git a/tomviz/pybind11/CMakeLists.txt b/tomviz/pybind11/CMakeLists.txt
+index c6330724..85393603 100644
+--- a/tomviz/pybind11/CMakeLists.txt
++++ b/tomviz/pybind11/CMakeLists.txt
+@@ -1,4 +1,4 @@
+-find_package(TBB)
++find_package(TBB REQUIRED)
+ 
+ set(CMAKE_MODULE_LINKER_FLAGS "")
+ pybind11_add_module(_wrapping
+@@ -25,12 +25,10 @@ pybind11_add_module(ctvlib
+   ctvlib/eigenConversion.h
+   ctvlib/WrappingCtvlib.cxx)
+ target_link_libraries(ctvlib
+-  PRIVATE tomvizcore VTK::eigen ${TBB_LIBRARIES})
++  PRIVATE tomvizcore VTK::eigen TBB::tbb)
+ 
+ add_dependencies(ctvlib VTK::eigen)
+ 
+-include_directories(ctvlib ${TBB_INCLUDE_DIR})
+-
+ set_target_properties(ctvlib PROPERTIES
+   LIBRARY_OUTPUT_DIRECTORY "${tomviz_python_binary_dir}/tomviz/_realtime"
+   LIBRARY_OUTPUT_DIRECTORY_RELEASE "${tomviz_python_binary_dir}/tomviz/_realtime"
+diff --git a/tomviz/tomvizPythonConfig.h.in b/tomviz/tomvizPythonConfig.h.in
+index c50e5311..beedcc79 100644
+--- a/tomviz/tomvizPythonConfig.h.in
++++ b/tomviz/tomvizPythonConfig.h.in
+@@ -73,7 +73,8 @@ void PythonAppInitPrependPathWindows(const std::string& exe_dir)
+   }
+ 
+   // Prepend conda prefix site packages if available
+-  std::string conda_prefix = std::getenv("CONDA_PREFIX");
++  const char* conda_prefix_env = std::getenv("CONDA_PREFIX");
++  std::string conda_prefix = conda_prefix_env ? conda_prefix_env : "";
+   if (!conda_prefix.empty()) {
+     PythonAppInitPrependPythonPath(conda_prefix + "/Lib/site-packages");
+   }
+@@ -114,7 +115,8 @@ void PythonAppInitPrependPathLinux(const std::string& exe_dir)
+   }
+ 
+   // Prepend conda prefix site packages if available
+-  std::string conda_prefix = std::getenv("CONDA_PREFIX");
++  const char* conda_prefix_env = std::getenv("CONDA_PREFIX");
++  std::string conda_prefix = conda_prefix_env ? conda_prefix_env : "";
+   if (!conda_prefix.empty()) {
+     PythonAppInitPrependPythonPath(
+         conda_prefix +
+@@ -128,8 +130,12 @@ void PythonAppInitPrependPathLinux(const std::string& exe_dir)
+ //---------------------------------------------------------------------------
+ void PythonAppInitPrependPathOsX(const std::string& exe_dir)
+ {
++  // Check for build tree: when built as a bundle, the exe is 4 levels deep
++  // (bin/tomviz.app/Contents/MacOS/), otherwise just 1 level (bin/).
+   bool is_build_dir = vtksys::SystemTools::FileExists(
+-    (exe_dir + "/../../../../CMakeCache.txt").c_str());
++    (exe_dir + "/../../../../CMakeCache.txt").c_str()) ||
++    vtksys::SystemTools::FileExists(
++    (exe_dir + "/../CMakeCache.txt").c_str());
+   if (is_build_dir) {
+     // Add ParaView directories.
+     PythonAppInitPrependPythonPath(PARAVIEW_BUILD_DIR "/lib");
+@@ -141,9 +147,16 @@ void PythonAppInitPrependPathOsX(const std::string& exe_dir)
+     // Add tomviz Python source dir.
+     PythonAppInitPrependPythonPath(TOMVIZ_PYTHON_SOURCE_DIR);
+   } else {
+-    // since exe_dir in <PREFiX>/bin, we do a  /../
++    // since exe_dir in <PREFIX>/bin (or Contents/MacOS), we do a  /../
+     PythonAppInitPrependPythonPath(exe_dir + "/../" TOMVIZ_PYTHON_INSTALL_DIR);
+-    // we don't add anything for ParaView since, ParaView takes care of that.
++
++    // Standard (non-bundle) paths
++    auto python_path = exe_dir + "/../lib/python" + PYTHON_VER;
++    PythonAppInitPrependPythonPath(python_path);
++    PythonAppInitPrependPythonPath(python_path + "/site-packages");
++    PythonAppInitPrependPythonPath(python_path + "/lib-dynload");
++
++    // Bundle-specific paths (silently skipped if directories don't exist)
+     PythonAppInitPrependPythonPath(exe_dir + "/../Libraries/");
+     PythonAppInitPrependPythonPath(exe_dir +
+                                    "/../Libraries/python" +
+@@ -155,7 +168,8 @@ void PythonAppInitPrependPathOsX(const std::string& exe_dir)
+   }
+ 
+   // Prepend conda prefix site packages if available
+-  std::string conda_prefix = std::getenv("CONDA_PREFIX");
++  const char* conda_prefix_env = std::getenv("CONDA_PREFIX");
++  std::string conda_prefix = conda_prefix_env ? conda_prefix_env : "";
+   if (!conda_prefix.empty()) {
+     PythonAppInitPrependPythonPath(
+         conda_prefix +
+@@ -183,7 +197,13 @@ std::string bundlePythonPath(const std::string& exeDir)
+ {
+   // Return the PYTHONPATH needed upon initializtion of Python.
+ #if defined(__APPLE__)
+-  return exeDir + "/../Python";
++  // If running from a bundle, Python is at Contents/Python.
++  // Otherwise, use the same layout as Linux.
++  std::string bundlePath = exeDir + "/../Python";
++  if (vtksys::SystemTools::FileIsDirectory(bundlePath.c_str())) {
++    return bundlePath;
++  }
++  return exeDir + "/../lib/python" + PYTHON_VER;
+ #elif defined(_WIN32)
+   return "";
+ #else
+diff --git a/tomviz/HistogramWidget.cxx b/tomviz/HistogramWidget.cxx
+index 8aebfc38..81e2428e 100644
+--- a/tomviz/HistogramWidget.cxx
++++ b/tomviz/HistogramWidget.cxx
+@@ -289,7 +289,7 @@ vtkSMProxy* HistogramWidget::getScalarBarRepresentation(vtkSMProxy* view)
+     vtkSMPropertyHelper(sbProxy, "Enabled").Set(0);
+     vtkSMPropertyHelper(sbProxy, "Title").Set("");
+     vtkSMPropertyHelper(sbProxy, "ComponentTitle").Set("");
+-    vtkSMPropertyHelper(sbProxy, "RangeLabelFormat").Set("%g");
++    vtkSMPropertyHelper(sbProxy, "RangeLabelFormat").Set("{:g}");
+     sbProxy->UpdateVTKObjects();
+   }
+
