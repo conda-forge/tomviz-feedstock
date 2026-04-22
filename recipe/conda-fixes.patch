@@ -307,12 +307,12 @@ index 431a9715..94a3c76c 100644
 +			CloseHandle(log_reopen);
 +		}
 +
-+		// Show dialog with stack trace (truncated to first 15 frames for display)
++		// Show dialog with stack trace (truncated to first 8 frames for display)
 +		const char* code_name = exception_code_name(code);
 +		wchar_t wcode_name[64];
 +		MultiByteToWideChar(CP_UTF8, 0, code_name, -1, wcode_name, 64);
 +
-+		// Convert stack trace to wide chars, truncated to first 15 frames
++		// Convert stack trace to wide chars, truncated to first 8 frames
 +		// (most recent / crash-site frames) for display
 +		char display_stack[8192];
 +		int display_len = 0;
