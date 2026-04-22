@@ -71,7 +71,7 @@ index 431a9715..94a3c76c 100644
  
  	#define localtime_r(a, b) localtime_s(b, a) // No localtime_r with MSVC, but arguments are swapped for localtime_s
  #else
-@@ -1900,10 +1905,171 @@ namespace loguru
+@@ -1900,10 +1905,279 @@ namespace loguru
  
  #ifdef _WIN32
  namespace loguru {
@@ -212,25 +212,133 @@ index 431a9715..94a3c76c 100644
 +					op, (unsigned long long)exception_info->ExceptionRecord->ExceptionInformation[1]);
 +			}
 +
-+			len += sprintf_s(buf + len, sizeof(buf) - len,
-+				"\r\nA minidump file has been saved alongside this log.\r\n"
-+				"Please send both files to the tomviz developers for analysis.\r\n");
-+
 +			DWORD written;
 +			WriteFile(log_file, buf, (DWORD)len, &written, NULL);
 +			CloseHandle(log_file);
 +		}
 +
-+		// Also try to show a message box so the user knows a dump was saved
-+		wchar_t wmsg[512];
++		// Walk the stack into a reusable buffer
++		char stack_buf[8192];
++		int stack_len = 0;
++		int num_frames = 0;
++		{
++			HANDLE process = GetCurrentProcess();
++			HANDLE thread = GetCurrentThread();
++			SymInitialize(process, NULL, TRUE);
++
++			CONTEXT ctx = *exception_info->ContextRecord;
++			STACKFRAME64 frame = {};
++			frame.AddrPC.Offset = ctx.Rip;
++			frame.AddrPC.Mode = AddrModeFlat;
++			frame.AddrFrame.Offset = ctx.Rbp;
++			frame.AddrFrame.Mode = AddrModeFlat;
++			frame.AddrStack.Offset = ctx.Rsp;
++			frame.AddrStack.Mode = AddrModeFlat;
++
++			char sym_buf[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)];
++			SYMBOL_INFO* symbol = (SYMBOL_INFO*)sym_buf;
++			symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
++			symbol->MaxNameLen = MAX_SYM_NAME;
++
++			for (int i = 0; i < 64; ++i) {
++				if (!StackWalk64(IMAGE_FILE_MACHINE_AMD64, process, thread,
++					&frame, &ctx, NULL,
++					SymFunctionTableAccess64, SymGetModuleBase64, NULL)) {
++					break;
++				}
++				if (frame.AddrPC.Offset == 0) break;
++
++				DWORD64 displacement = 0;
++				int remaining = (int)sizeof(stack_buf) - stack_len - 1;
++				if (remaining < 128) break;
++
++				// Get module name
++				HMODULE hModule = NULL;
++				char mod_name[MAX_PATH] = "???";
++				if (GetModuleHandleExA(
++					GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
++					GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
++					(LPCSTR)(uintptr_t)frame.AddrPC.Offset, &hModule)) {
++					GetModuleFileNameA(hModule, mod_name, MAX_PATH);
++					char* slash = strrchr(mod_name, '\\');
++					if (slash) memmove(mod_name, slash + 1, strlen(slash + 1) + 1);
++				}
++
++				if (SymFromAddr(process, frame.AddrPC.Offset, &displacement, symbol)) {
++					IMAGEHLP_LINE64 file_line = {};
++					file_line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
++					DWORD line_disp = 0;
++					if (SymGetLineFromAddr64(process, frame.AddrPC.Offset, &line_disp, &file_line)) {
++						stack_len += sprintf_s(stack_buf + stack_len, remaining,
++							"  [%2d] %s!%s+0x%llX (%s:%lu)\r\n",
++							i, mod_name, symbol->Name,
++							(unsigned long long)displacement,
++							file_line.FileName, file_line.LineNumber);
++					} else {
++						stack_len += sprintf_s(stack_buf + stack_len, remaining,
++							"  [%2d] %s!%s+0x%llX\r\n",
++							i, mod_name, symbol->Name,
++							(unsigned long long)displacement);
++					}
++				} else {
++					stack_len += sprintf_s(stack_buf + stack_len, remaining,
++						"  [%2d] %s!0x%llX\r\n",
++						i, mod_name,
++						(unsigned long long)frame.AddrPC.Offset);
++				}
++				num_frames++;
++			}
++
++			SymCleanup(process);
++		}
++
++		// Append stack trace to the log file
++		HANDLE log_reopen = CreateFileW(log_path, FILE_APPEND_DATA, 0, NULL,
++			OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
++		if (log_reopen != INVALID_HANDLE_VALUE) {
++			DWORD written;
++			const char* hdr = "\r\nStack Trace:\r\n";
++			WriteFile(log_reopen, hdr, (DWORD)strlen(hdr), &written, NULL);
++			WriteFile(log_reopen, stack_buf, (DWORD)stack_len, &written, NULL);
++			const char* footer =
++				"\r\nA minidump file has been saved alongside this log.\r\n"
++				"Please send both files to the tomviz developers for analysis.\r\n";
++			WriteFile(log_reopen, footer, (DWORD)strlen(footer), &written, NULL);
++			CloseHandle(log_reopen);
++		}
++
++		// Show dialog with stack trace (truncated to first 8 frames for display)
 +		const char* code_name = exception_code_name(code);
 +		wchar_t wcode_name[64];
 +		MultiByteToWideChar(CP_UTF8, 0, code_name, -1, wcode_name, 64);
-+		_snwprintf_s(wmsg, 512, _TRUNCATE,
++
++		// Convert stack trace to wide chars, truncated to first 8 frames
++		// (most recent / crash-site frames) for display
++		char display_stack[8192];
++		int display_len = 0;
++		int display_frames = 0;
++		const int max_display_frames = 8;
++		for (int i = 0; i < stack_len && display_frames < max_display_frames; ++i) {
++			display_stack[display_len++] = stack_buf[i];
++			if (stack_buf[i] == '\n') display_frames++;
++		}
++		if (num_frames > max_display_frames) {
++			display_len += sprintf_s(display_stack + display_len,
++				sizeof(display_stack) - display_len,
++				"  ... (%d more frames in log file)\r\n",
++				num_frames - max_display_frames);
++		}
++		display_stack[display_len] = '\0';
++		wchar_t wstack[4096];
++		MultiByteToWideChar(CP_UTF8, 0, display_stack, -1, wstack, 4096);
++
++		wchar_t wmsg[5120];
++		_snwprintf_s(wmsg, 5120, _TRUNCATE,
 +			L"Tomviz has crashed (%s).\n\n"
++			L"Stack Trace:\n%s\n"
 +			L"Crash dump files have been saved to:\n%s\n\n"
 +			L"Please send these files to the developers.",
-+			wcode_name, crash_dir);
++			wcode_name, wstack, crash_dir);
 +		MessageBoxW(NULL, wmsg, L"Tomviz Crash", MB_OK | MB_ICONERROR);
 +
 +		return EXCEPTION_EXECUTE_HANDLER;
@@ -351,6 +459,20 @@ index c50e5311..beedcc79 100644
  #elif defined(_WIN32)
    return "";
  #else
+diff --git a/tomviz/MoveActiveObject.h b/tomviz/MoveActiveObject.h
+index 7a75d82d..b3c1e5a0 100644
+--- a/tomviz/MoveActiveObject.h
++++ b/tomviz/MoveActiveObject.h
+@@ -58,7 +58,7 @@ private:
+   vtkNew<vtkCustomBoxRepresentation> BoxRep;
+   vtkNew<vtkBoxWidget2> BoxWidget;
+   vtkNew<vtkEventQtSlotConnect> EventLink;
+   QPointer<pqView> View;
+-  DataSource* currentDataSource;
++  DataSource* currentDataSource = nullptr;
+   bool Interacting = false;
+ };
+ } // namespace tomviz
 diff --git a/tomviz/HistogramWidget.cxx b/tomviz/HistogramWidget.cxx
 index 8aebfc38..81e2428e 100644
 --- a/tomviz/HistogramWidget.cxx
