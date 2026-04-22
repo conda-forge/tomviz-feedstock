@@ -212,12 +212,88 @@ index 431a9715..94a3c76c 100644
 +					op, (unsigned long long)exception_info->ExceptionRecord->ExceptionInformation[1]);
 +			}
 +
-+			len += sprintf_s(buf + len, sizeof(buf) - len,
-+				"\r\nA minidump file has been saved alongside this log.\r\n"
-+				"Please send both files to the tomviz developers for analysis.\r\n");
-+
 +			DWORD written;
 +			WriteFile(log_file, buf, (DWORD)len, &written, NULL);
++
++			// Write stack trace
++			HANDLE process = GetCurrentProcess();
++			HANDLE thread = GetCurrentThread();
++			SymInitialize(process, NULL, TRUE);
++
++			CONTEXT ctx = *exception_info->ContextRecord;
++			STACKFRAME64 frame = {};
++			frame.AddrPC.Offset = ctx.Rip;
++			frame.AddrPC.Mode = AddrModeFlat;
++			frame.AddrFrame.Offset = ctx.Rbp;
++			frame.AddrFrame.Mode = AddrModeFlat;
++			frame.AddrStack.Offset = ctx.Rsp;
++			frame.AddrStack.Mode = AddrModeFlat;
++
++			const char* hdr = "\r\nStack Trace:\r\n";
++			WriteFile(log_file, hdr, (DWORD)strlen(hdr), &written, NULL);
++
++			char sym_buf[sizeof(SYMBOL_INFO) + MAX_SYM_NAME * sizeof(TCHAR)];
++			SYMBOL_INFO* symbol = (SYMBOL_INFO*)sym_buf;
++			symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
++			symbol->MaxNameLen = MAX_SYM_NAME;
++
++			for (int i = 0; i < 64; ++i) {
++				if (!StackWalk64(IMAGE_FILE_MACHINE_AMD64, process, thread,
++					&frame, &ctx, NULL,
++					SymFunctionTableAccess64, SymGetModuleBase64, NULL)) {
++					break;
++				}
++				if (frame.AddrPC.Offset == 0) break;
++
++				char line[512];
++				int line_len = 0;
++				DWORD64 displacement = 0;
++
++				// Get module name
++				HMODULE hModule = NULL;
++				char mod_name[MAX_PATH] = "???";
++				if (GetModuleHandleExA(
++					GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
++					GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
++					(LPCSTR)(uintptr_t)frame.AddrPC.Offset, &hModule)) {
++					GetModuleFileNameA(hModule, mod_name, MAX_PATH);
++					// Extract just the filename
++					char* slash = strrchr(mod_name, '\\');
++					if (slash) memmove(mod_name, slash + 1, strlen(slash + 1) + 1);
++				}
++
++				if (SymFromAddr(process, frame.AddrPC.Offset, &displacement, symbol)) {
++					IMAGEHLP_LINE64 file_line = {};
++					file_line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
++					DWORD line_disp = 0;
++					if (SymGetLineFromAddr64(process, frame.AddrPC.Offset, &line_disp, &file_line)) {
++						line_len = sprintf_s(line, sizeof(line),
++							"  [%2d] %s!%s+0x%llX (%s:%lu)\r\n",
++							i, mod_name, symbol->Name,
++							(unsigned long long)displacement,
++							file_line.FileName, file_line.LineNumber);
++					} else {
++						line_len = sprintf_s(line, sizeof(line),
++							"  [%2d] %s!%s+0x%llX\r\n",
++							i, mod_name, symbol->Name,
++							(unsigned long long)displacement);
++					}
++				} else {
++					line_len = sprintf_s(line, sizeof(line),
++						"  [%2d] %s!0x%llX\r\n",
++						i, mod_name,
++						(unsigned long long)frame.AddrPC.Offset);
++				}
++
++				WriteFile(log_file, line, (DWORD)line_len, &written, NULL);
++			}
++
++			SymCleanup(process);
++
++			const char* footer =
++				"\r\nA minidump file has been saved alongside this log.\r\n"
++				"Please send both files to the tomviz developers for analysis.\r\n";
++			WriteFile(log_file, footer, (DWORD)strlen(footer), &written, NULL);
 +			CloseHandle(log_file);
 +		}
 +
@@ -351,6 +427,20 @@ index c50e5311..beedcc79 100644
  #elif defined(_WIN32)
    return "";
  #else
+diff --git a/tomviz/MoveActiveObject.h b/tomviz/MoveActiveObject.h
+index 7a75d82d..b3c1e5a0 100644
+--- a/tomviz/MoveActiveObject.h
++++ b/tomviz/MoveActiveObject.h
+@@ -58,7 +58,7 @@ private:
+   vtkNew<vtkCustomBoxRepresentation> BoxRep;
+   vtkNew<vtkBoxWidget2> BoxWidget;
+   vtkNew<vtkEventQtSlotConnect> EventLink;
+   QPointer<pqView> View;
+-  DataSource* currentDataSource;
++  DataSource* currentDataSource = nullptr;
+   bool Interacting = false;
+ };
+ } // namespace tomviz
 diff --git a/tomviz/HistogramWidget.cxx b/tomviz/HistogramWidget.cxx
 index 8aebfc38..81e2428e 100644
 --- a/tomviz/HistogramWidget.cxx
