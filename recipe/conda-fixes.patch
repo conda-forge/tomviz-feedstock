@@ -351,3 +351,16 @@ index c50e5311..beedcc79 100644
  #elif defined(_WIN32)
    return "";
  #else
+diff --git a/tomviz/HistogramWidget.cxx b/tomviz/HistogramWidget.cxx
+index 8aebfc38..81e2428e 100644
+--- a/tomviz/HistogramWidget.cxx
++++ b/tomviz/HistogramWidget.cxx
+@@ -289,7 +289,7 @@ vtkSMProxy* HistogramWidget::getScalarBarRepresentation(vtkSMProxy* view)
+     vtkSMPropertyHelper(sbProxy, "Enabled").Set(0);
+     vtkSMPropertyHelper(sbProxy, "Title").Set("");
+     vtkSMPropertyHelper(sbProxy, "ComponentTitle").Set("");
+-    vtkSMPropertyHelper(sbProxy, "RangeLabelFormat").Set("%g");
++    vtkSMPropertyHelper(sbProxy, "RangeLabelFormat").Set("{:g}");
+     sbProxy->UpdateVTKObjects();
+   }
+
