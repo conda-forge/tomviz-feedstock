@@ -473,6 +473,47 @@ index 7a75d82d..b3c1e5a0 100644
    bool Interacting = false;
  };
  } // namespace tomviz
+diff --git a/tomviz/MainWindow.cxx b/tomviz/MainWindow.cxx
+index f85c7b3..834cbb7 100644
+--- a/tomviz/MainWindow.cxx
++++ b/tomviz/MainWindow.cxx
+@@ -83,6 +83,7 @@
+ #include <QMessageBox>
+ #include <QOffscreenSurface>
+ #include <QOpenGLContext>
++#include <QSet>
+ #include <QStandardPaths>
+ #include <QSurfaceFormat>
+ #include <QTimer>
+@@ -617,8 +618,27 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags flags)
+   auto pythonFuture = QtConcurrent::run(initPython);
+   pythonWatcher->setFuture(pythonFuture);
+
+-  // Add plugin dock widgets when a plugin is loaded
++  // Snapshot existing dock widgets before loading plugin dock widgets
++  QSet<QDockWidget*> existingDocks(findChildren<QDockWidget*>().begin(),
++                                   findChildren<QDockWidget*>().end());
++
++  // Add plugin dock widgets when a plugin is loaded.
+   new pqPluginDockWidgetsBehavior(this);
++
++  // On first launch (no saved window state), ParaView plugin dock widgets
++  // (e.g., Node Editor) appear visible by default. Hide any that were added
++  // by plugins. pqPersistentMainWindowStateBehavior will restore their
++  // visibility on subsequent launches if the user opened them.
++  QTimer::singleShot(0, this, [this, existingDocks]() {
++    QSettings* settings = pqApplicationCore::instance()->settings();
++    if (!settings->contains("MainWindow/Geometry")) {
++      for (auto* dock : findChildren<QDockWidget*>()) {
++        if (!existingDocks.contains(dock)) {
++          dock->hide();
++        }
++      }
++    }
++  });
+ }
+
+ MainWindow::~MainWindow()
 diff --git a/tomviz/HistogramWidget.cxx b/tomviz/HistogramWidget.cxx
 index 8aebfc38..81e2428e 100644
 --- a/tomviz/HistogramWidget.cxx
@@ -485,4 +526,53 @@ index 8aebfc38..81e2428e 100644
 +    vtkSMPropertyHelper(sbProxy, "RangeLabelFormat").Set("{:g}");
      sbProxy->UpdateVTKObjects();
    }
-
+ 
+diff --git a/tomviz/operators/EditPythonOperatorWidget.ui b/tomviz/operators/EditPythonOperatorWidget.ui
+index 348ac78e..8a72c3a6 100644
+--- a/tomviz/operators/EditPythonOperatorWidget.ui
++++ b/tomviz/operators/EditPythonOperatorWidget.ui
+@@ -91,11 +91,6 @@
+        </item>
+        <item>
+         <widget class="QTextEdit" name="script">
+-         <property name="font">
+-          <font>
+-           <family>Monospace</family>
+-          </font>
+-         </property>
+          <property name="lineWrapMode">
+           <enum>QTextEdit::NoWrap</enum>
+          </property>
+@@ -103,7 +98,7 @@
+           <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+ &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+ p, li { white-space: pre-wrap; }
+-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Monospace'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
++&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
+ &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;def transform(dataset):&lt;/p&gt;
+ &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;    &amp;quot;&amp;quot;&amp;quot;Define this method for Python operators that&lt;/p&gt;
+ &lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;    transform the input array&amp;quot;&amp;quot;&amp;quot;&lt;/p&gt;
+diff --git a/tomviz/operators/OperatorPython.cxx b/tomviz/operators/OperatorPython.cxx
+index 23947408..0422ac44 100644
+--- a/tomviz/operators/OperatorPython.cxx
++++ b/tomviz/operators/OperatorPython.cxx
+@@ -4,6 +4,7 @@
+ #include "OperatorPython.h"
+ 
+ #include <QFileDialog>
++#include <QFontDatabase>
+ #include <QJsonArray>
+ #include <QJsonDocument>
+ #include <QJsonObject>
+@@ -54,6 +55,11 @@ public:
+     m_ui.name->setText(o->label());
+     // Ensure the tab widget expands to fill available vertical space.
+     m_ui.verticalLayout->setStretch(1, 1);
++    // Use the platform's default fixed-width font (Menlo on macOS, Consolas
++    // on Windows, etc.) instead of the Linux-only "Monospace" alias so Qt
++    // doesn't populate its font-alias table just to resolve a missing name.
++    m_ui.script->setFont(
++      QFontDatabase::systemFont(QFontDatabase::FixedFont));
+     auto* highlighter =
+       new pqPythonSyntaxHighlighter(m_ui.script, *m_ui.script);
+     highlighter->ConnectHighligter();
