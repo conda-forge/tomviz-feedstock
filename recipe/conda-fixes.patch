@@ -491,8 +491,8 @@ index f85c7b3..834cbb7 100644
 
 -  // Add plugin dock widgets when a plugin is loaded
 +  // Snapshot existing dock widgets before loading plugin dock widgets
-+  QSet<QDockWidget*> existingDocks(findChildren<QDockWidget*>().begin(),
-+                                   findChildren<QDockWidget*>().end());
++  auto currentDocks = findChildren<QDockWidget*>();
++  QSet<QDockWidget*> existingDocks(currentDocks.begin(), currentDocks.end());
 +
 +  // Add plugin dock widgets when a plugin is loaded.
    new pqPluginDockWidgetsBehavior(this);

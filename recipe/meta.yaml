@@ -2,7 +2,7 @@
 {% set version = "2.3.1" %}
 {% set paraview_version = "6.1.0" %}
 {% set python_min = "3.10" %}
-{% set build_number = "4" %}
+{% set build_number = "5" %}
 
 package:
   name: {{ name|lower }}-split
@@ -69,8 +69,12 @@ outputs:
         - "! ldd $PREFIX/lib/libtomvizcore${SHLIB_EXT} | grep 'not found'"  # [linux]
         - "! otool -L $PREFIX/bin/tomviz | grep 'not found'"  # [osx]
         - "! otool -L $PREFIX/lib/libtomvizcore${SHLIB_EXT} | grep 'not found'"  # [osx]
+        - "timeout 20 tomviz || test $? -eq 124"  # [osx]
         - if not exist %LIBRARY_BIN%\\tomviz.exe exit 1  # [win]
         - if not exist %LIBRARY_BIN%\\tomvizcore.dll exit 1  # [win]
+        - powershell -Command "$p = Start-Process tomviz -PassThru; Start-Sleep 20; if ($p.HasExited) { exit 1 } else { Stop-Process $p; exit 0 }"  # [win]
+      requires:
+        - coreutils  # [osx]
     about:
       home: https://github.com/OpenChemistry/tomviz
       license: BSD-3-Clause
