@@ -10,3 +10,8 @@ cxx_compiler:              # [win]
 
 vtk:
   - '9.6'
+
+# Upload beta builds to the conda-forge "beta" label instead of "main".
+# Installable via: conda install -c conda-forge/label/beta -c conda-forge tomviz
+channel_targets:
+  - conda-forge beta

@@ -1,8 +1,8 @@
 {% set name = "tomviz" %}
-{% set version = "2.3.1" %}
+{% set version = "3.0.0beta1" %}
 {% set paraview_version = "6.1.0" %}
 {% set python_min = "3.10" %}
-{% set build_number = "7" %}
+{% set build_number = "0" %}
 
 package:
   name: {{ name|lower }}-split
@@ -10,10 +10,9 @@ package:
 
 source:
   - git_url: https://github.com/OpenChemistry/tomviz
-    git_rev: {{ version }}
+    # Beta builds track the 3.0 development branch rather than a release tag.
+    git_rev: "3.0"
     folder: tomviz
-    patches:
-      - conda-fixes.patch
   # Submodules updated in build.sh: pybind11
 
 build:
