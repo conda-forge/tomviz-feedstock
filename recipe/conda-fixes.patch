@@ -576,3 +576,94 @@ index 23947408..0422ac44 100644
      auto* highlighter =
        new pqPythonSyntaxHighlighter(m_ui.script, *m_ui.script);
      highlighter->ConnectHighligter();
+diff --git a/tomviz/python/Recon_ART.json b/tomviz/python/Recon_ART.json
+index c066df1..0b95e03 100644
+--- a/tomviz/python/Recon_ART.json
++++ b/tomviz/python/Recon_ART.json
+@@ -1,13 +1,7 @@
+ {
+   "name" : "ReconstructART",
+   "label" : "Reconstruct (ART)",
+-  "description" : "Reconstruct a tilt series using Algebraic Reconstruction Technique (ART) with a positivity constraint. 
+-
+-The tilt series data should be aligned prior to reconstruction and the tilt axis must be parallel to the x-direction.
+-
+-The size of reconstruction will be (Nx,Ny,Ny). The number of iterations can be specified below.
+-
+-Reconstrucing a 256x256x256 tomogram typically takes more than 65 mins with 5 iterations.",
++  "description" : "Reconstruct a tilt series using Algebraic Reconstruction Technique (ART) with a positivity constraint. \n\nThe tilt series data should be aligned prior to reconstruction and the tilt axis must be parallel to the x-direction.\n\nThe size of reconstruction will be (Nx,Ny,Ny). The number of iterations can be specified below.\n\nReconstrucing a 256x256x256 tomogram typically takes more than 65 mins with 5 iterations.",
+   "children": [
+     {
+       "name": "reconstruction",
+diff --git a/tomviz/python/Recon_TV_minimization.json b/tomviz/python/Recon_TV_minimization.json
+index b8680b1..3a5e572 100644
+--- a/tomviz/python/Recon_TV_minimization.json
++++ b/tomviz/python/Recon_TV_minimization.json
+@@ -1,13 +1,7 @@
+ {
+   "name" : "Recon_TV_minimization",
+   "label" : "Reconstruct (TV Minimization)",
+-  "description" : "Reconstruct a tilt series using TV Minimization. 
+-
+-The tilt series data should be aligned prior to reconstruction and the tilt axis must be parallel to the x-direction.
+-
+-The size of reconstruction will be (Nx,Ny,Ny). The number of iterations can be specified below. 
+-
+-Reconstrucing a 256x256x256 tomogram typically takes more than 100 mins with 5 iterations.",
++  "description" : "Reconstruct a tilt series using TV Minimization. \n\nThe tilt series data should be aligned prior to reconstruction and the tilt axis must be parallel to the x-direction.\n\nThe size of reconstruction will be (Nx,Ny,Ny). The number of iterations can be specified below. \n\nReconstrucing a 256x256x256 tomogram typically takes more than 100 mins with 5 iterations.",
+ 
+   "children": [
+     {
+diff --git a/tomviz/python/Recon_WBP.json b/tomviz/python/Recon_WBP.json
+index c338115..f311fba 100644
+--- a/tomviz/python/Recon_WBP.json
++++ b/tomviz/python/Recon_WBP.json
+@@ -1,13 +1,7 @@
+ {
+   "name" : "ReconstructWBP",
+   "label" : "Weighted Back Projection",
+-  "description" : "Reconstruct a tilt series using Weighted Back Projection (WBP) method. 
+-
+-The tilt series data should be aligned prior to reconstruction and the tilt axis must be parallel to the x-direction.
+-
+-The size of reconstruction will be (Nx,N,N), where Nx is the number of pixels in x-direction and N can be specified below.\nThe maximum N allowed is 4096. 
+-
+-Reconstrucing a 512x512x512 tomogram typically takes 7-10 mins.",
++  "description" : "Reconstruct a tilt series using Weighted Back Projection (WBP) method. \n\nThe tilt series data should be aligned prior to reconstruction and the tilt axis must be parallel to the x-direction.\n\nThe size of reconstruction will be (Nx,N,N), where Nx is the number of pixels in x-direction and N can be specified below.\nThe maximum N allowed is 4096. \n\nReconstrucing a 512x512x512 tomogram typically takes 7-10 mins.",
+ 
+   "children": [
+     {
+diff --git a/tomviz/python/Recon_real_time_tomography.json b/tomviz/python/Recon_real_time_tomography.json
+index 249606d..e21d3d0 100644
+--- a/tomviz/python/Recon_real_time_tomography.json
++++ b/tomviz/python/Recon_real_time_tomography.json
+@@ -1,13 +1,7 @@
+ {
+   "name" : "LiveTomo",
+   "label" : "Live Tomography Visualization",
+-  "description" : "Real-Time Tomography Application
+-
+-Here tomographic reconstructions will occur in real time, updating as new data arrives in a specified directory. The tomogram will dynamically improve with time as both the reconstruction algorithm converges and additional projections arrives. 
+-
+-A step-by-step guide is provided in the Real-Time Tomography User Manual.
+-
+-Below specify the directory where projection image data will arrive. The specimen tilt angle for each image is extracted automatically from the metadata in dm4 or ser files. However, for dm3 files, the name format must be \'_[ANGLE]degrees_.dm3\', where [ANGLE] is the tilt angle.",
++  "description" : "Real-Time Tomography Application\n\nHere tomographic reconstructions will occur in real time, updating as new data arrives in a specified directory. The tomogram will dynamically improve with time as both the reconstruction algorithm converges and additional projections arrives. \n\nA step-by-step guide is provided in the Real-Time Tomography User Manual.\n\nBelow specify the directory where projection image data will arrive. The specimen tilt angle for each image is extracted automatically from the metadata in dm4 or ser files. However, for dm3 files, the name format must be '_[ANGLE]degrees_.dm3', where [ANGLE] is the tilt angle.",
+   "children": [
+     {
+       "name": "reconstruction",
+diff --git a/tomviz/python/ctf_correct.json b/tomviz/python/ctf_correct.json
+index 4599010..fe1709a 100755
+--- a/tomviz/python/ctf_correct.json
++++ b/tomviz/python/ctf_correct.json
+@@ -1,9 +1,7 @@
+ {
+   "name" : "ctf_correct",
+   "label" : "CTF Correction",
+-  "description" : "Apply CTF correction on BF-TEM images.
+-
+-This program adopts naming conventions of the following paper:\n J. A. Mindell and N. Grigorieff (doi:10.1016/s1047-8477(03)00069-8)",
++  "description" : "Apply CTF correction on BF-TEM images.\n\nThis program adopts naming conventions of the following paper:\n J. A. Mindell and N. Grigorieff (doi:10.1016/s1047-8477(03)00069-8)",
+   "parameters" : [
+     {
+       "name" : "apix",
