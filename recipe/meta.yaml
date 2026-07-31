@@ -84,7 +84,7 @@ outputs:
         - coreutils  # [osx]
         # Debug: pin the previous python build to test whether the launch
         # SIGSEGV is a regression introduced by the 2026-07-24 _101 rebuild.
-        - python 3.14.6 *_100  # [osx and py==314]
+        - python 3.14.6 *_100_cp314  # [osx and py==314]
     about:
       home: https://github.com/OpenChemistry/tomviz
       license: BSD-3-Clause
