@@ -1,7 +1,7 @@
 {% set name = "tomviz" %}
 {% set version = "3.0.0" %}
 {% set paraview_version = "6.1.1" %}
-{% set python_min = "3.10" %}
+{% set python_min = "3.11" %}
 {% set build_number = 0 %}
 
 package:
@@ -26,7 +26,9 @@ outputs:
     script: build_tomviz.bat  # [win]
     build:
       number: {{ build_number }}
-      skip: false
+      # py310 is skipped: the paraview 6.1.1 py310 osx-64 package is broken
+      # (missing jsoncpp symbol at import time)
+      skip: true  # [py < 311]
     requirements:
       build:
         - {{ compiler('c') }}
@@ -93,7 +95,13 @@ outputs:
     build:
       number: {{ build_number }}
       noarch: python
-      skip: true  # [not linux or py != 310]  # Only build once on py310 for Linux
+      skip: true  # [not linux or py != 311]  # Only build once on py311 for Linux
+      # Without this, conda-smithy drops python from the set of variables used
+      # to split CI jobs on linux (it intersects the loop vars of all outputs,
+      # and this noarch output does not loop over python), which squishes all
+      # python versions into a single linux job.
+      force_use_keys:
+        - python
       entry_points:
         - tomviz-pipeline = tomviz.cli:main
     requirements:
