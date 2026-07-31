@@ -72,6 +72,10 @@ outputs:
         - "! ldd $PREFIX/lib/libtomvizcore${SHLIB_EXT} | grep 'not found'"  # [linux]
         - "! otool -L $PREFIX/bin/tomviz | grep 'not found'"  # [osx]
         - "! otool -L $PREFIX/lib/libtomvizcore${SHLIB_EXT} | grep 'not found'"  # [osx]
+        # Debug: capture a real backtrace for the py3.14 macOS launch SIGSEGV.
+        # lldb batch mode: run the app; on crash the -k commands dump threads,
+        # registers, and the faulting disassembly before quitting.
+        - timeout 120 lldb -b -o "run" -k "bt all" -k "register read" -k "disassemble -a \$pc -c 16" -k "image lookup -a \$pc" -k "image list" -k "quit" -- tomviz || true  # [osx]
         - "timeout 20 tomviz || test $? -eq 124"  # [osx]
         - if not exist %LIBRARY_BIN%\\tomviz.exe exit 1  # [win]
         - if not exist %LIBRARY_BIN%\\tomvizcore.dll exit 1  # [win]
