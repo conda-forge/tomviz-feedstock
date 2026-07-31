@@ -72,12 +72,19 @@ outputs:
         - "! ldd $PREFIX/lib/libtomvizcore${SHLIB_EXT} | grep 'not found'"  # [linux]
         - "! otool -L $PREFIX/bin/tomviz | grep 'not found'"  # [osx]
         - "! otool -L $PREFIX/lib/libtomvizcore${SHLIB_EXT} | grep 'not found'"  # [osx]
+        # Debug: capture a real backtrace for the py3.14 macOS launch SIGSEGV.
+        # lldb batch mode: run the app; on crash the -k commands dump threads,
+        # registers, and the faulting disassembly before quitting.
+        - timeout 120 lldb -b -o "run" -k "bt all" -k "register read" -k "disassemble -a \$pc -c 16" -k "image lookup -a \$pc" -k "image list" -k "quit" -- tomviz || true  # [osx]
         - "timeout 20 tomviz || test $? -eq 124"  # [osx]
         - if not exist %LIBRARY_BIN%\\tomviz.exe exit 1  # [win]
         - if not exist %LIBRARY_BIN%\\tomvizcore.dll exit 1  # [win]
         - powershell -Command "$p = Start-Process tomviz -PassThru; Start-Sleep 20; if ($p.HasExited) { exit 1 } else { Stop-Process $p; exit 0 }"  # [win]
       requires:
         - coreutils  # [osx]
+        # Debug: pin the previous python build to test whether the launch
+        # SIGSEGV is a regression introduced by the 2026-07-24 _101 rebuild.
+        - python 3.14.6 *_100_cp314  # [osx and py==314]
     about:
       home: https://github.com/OpenChemistry/tomviz
       license: BSD-3-Clause
