@@ -4,6 +4,22 @@ set "CXXFLAGS=-MD"
 :: Update submodules
 cd tomviz
 git submodule update --init --recursive
+if errorlevel 1 exit 1
+
+:: Build against a newer pybind11 than the submodule pins. See
+:: build_tomviz.sh for the rationale. Drop once the submodule is bumped.
+set "PYBIND11_VERSION=v3.0.4"
+cd thirdparty\pybind11
+git checkout %PYBIND11_VERSION%
+if errorlevel 1 (
+  git fetch --tags https://github.com/pybind/pybind11.git
+  if errorlevel 1 exit 1
+  git checkout %PYBIND11_VERSION%
+  if errorlevel 1 exit 1
+)
+git --no-pager log -1 --format="pybind11 pinned to %%H"
+cd ..\..
+
 cd ..
 
 :: Build Tomviz

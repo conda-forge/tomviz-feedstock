@@ -10,6 +10,22 @@ export CXXFLAGS="${CXXFLAGS} -D_LIBCPP_DISABLE_AVAILABILITY"
 # Update submodules
 cd tomviz
 git submodule update --init --recursive
+
+# Build against a newer pybind11 than the submodule pins (v3.0.0, tagged
+# 2025-07-10). v3.0.0 predates Python 3.14.0 final and carries no 3.14 code
+# paths, and v3.0.2 fixed undefined behaviour when an embedded interpreter
+# imports modules from a non-main thread, which is what tomviz does on its
+# ThreadedExecutor worker. Drop this once the tomviz submodule is bumped.
+PYBIND11_VERSION=v3.0.4
+(
+  cd thirdparty/pybind11
+  # A full submodule clone already has the tags; fetch only if it doesn't.
+  git checkout "${PYBIND11_VERSION}" 2>/dev/null || {
+    git fetch --tags https://github.com/pybind/pybind11.git
+    git checkout "${PYBIND11_VERSION}"
+  }
+  git --no-pager log -1 --format="pybind11 pinned to %H (%d)"
+)
 cd ..
 
 # FIXME: setting the zlib paths manually shouldn't be necessary forever.
