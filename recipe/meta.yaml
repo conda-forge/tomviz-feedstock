@@ -1,8 +1,7 @@
 {% set name = "tomviz" %}
 {% set version = "3.0.0" %}
 {% set paraview_version = "6.1.1" %}
-{% set python_min = "3.11" %}
-{% set build_number = 0 %}
+{% set build_number = 1 %}
 
 package:
   name: {{ name|lower }}-split
@@ -42,10 +41,20 @@ outputs:
         - paraview =={{ paraview_version }}
         - vtk
         - tbb-devel
-        - libxml2-devel 2.14*
+        - libxml2-devel
         - libprotobuf
+        # Not linked by tomviz itself either: paraview's vtkRemotingApplication
+        # links libhdf5 but paraview declares no hdf5 run dependency, so without
+        # this run_export the solver pairs paraview (hdf5 1.14) with the hdf5 2
+        # builds of vtk-base and h5py and `import paraview.simple` fails with
+        # "Library not loaded: @rpath/libhdf5.310.dylib". Also enrolls this
+        # feedstock in the hdf5 migration so it rebuilds when paraview does.
+        - hdf5
       run:
         - python
+        # The pipeline library now lives in openchemistry/tomviz-pipeline and
+        # ships from its own feedstock; the app requires >=3.1.3,<4.
+        - tomviz-pipeline >=3.1.3,<4
         - numpy
         - scipy
         - h5py
@@ -66,6 +75,7 @@ outputs:
         - tomviz._wrapping
         - tomviz._realtime.ctvlib
       commands:
+        - tomviz-pipeline --help
         - test -f $PREFIX/bin/tomviz  # [unix]
         - test -f $PREFIX/lib/libtomvizcore${SHLIB_EXT}  # [unix]
         - "! ldd $PREFIX/bin/tomviz | grep 'not found'"  # [linux]
@@ -86,69 +96,6 @@ outputs:
         - tomviz/LICENSE
       summary: 'Cross platform, open source application for the processing, visualization, and analysis of 3D tomography data'
       doc_url: https://tomviz.readthedocs.io/
-      dev_url: https://github.com/OpenChemistry/tomviz
-
-  # Second output: tomviz-pipeline Python package
-  - name: tomviz-pipeline
-    script: build_tomviz-pipeline.sh   # [unix]
-    script: build_tomviz-pipeline.bat  # [win]
-    build:
-      number: {{ build_number }}
-      noarch: python
-      skip: true  # [not linux or py != 311]  # Only build once on py311 for Linux
-      # Without this, conda-smithy drops python from the set of variables used
-      # to split CI jobs on linux (it intersects the loop vars of all outputs,
-      # and this noarch output does not loop over python), which squishes all
-      # python versions into a single linux job.
-      force_use_keys:
-        - python
-      entry_points:
-        - tomviz-pipeline = tomviz.cli:main
-    requirements:
-      host:
-        - python {{ python_min }}
-        - pip
-        - setuptools
-      run:
-        - python >={{ python_min }}
-        - numpy
-        - scipy
-        - h5py
-        - click
-        - tqdm
-        - marshmallow
-        - jsonpatch
-        - jsonpointer
-        - pyfftw
-    test:
-      imports:
-        - tomviz
-        - tomviz.cli
-        - tomviz.operators
-      commands:
-        - tomviz-pipeline --help
-        - python -c "import tomviz; print('tomviz imported successfully')"
-      requires:
-        - python {{ python_min }}
-        - pip
-    about:
-      home: https://github.com/OpenChemistry/tomviz
-      license: BSD-3-Clause
-      license_family: BSD
-      license_file:
-        - tomviz/LICENSE
-      summary: 'Python pipeline execution tools for tomviz'
-      description: |
-        This package provides the Python pipeline execution tools from the Tomviz
-        project, enabling command-line execution of tomviz operators and pipelines
-        without the full GUI application. It includes the tomviz Python library and
-        the tomviz-pipeline command-line tool for processing tomographic data.
-
-        This package is also required when using the Tomviz Desktop application's
-        ExternalPython execution mode, where pipelines run in a separate conda
-        environment from the main application. The package must be installed
-        in that separate conda environment.
-      doc_url: https://tomviz.readthedocs.io/en/latest/pipelines.html
       dev_url: https://github.com/OpenChemistry/tomviz
 
 # This extra "about" section is a requirement by conda-forge, even
