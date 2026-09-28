@@ -3,10 +3,6 @@ About tomviz-feedstock
 
 Feedstock license: [BSD-3-Clause](https://github.com/conda-forge/tomviz-feedstock/blob/main/LICENSE.txt)
 
-
-About tomviz
-------------
-
 Home: https://github.com/OpenChemistry/tomviz
 
 Package license: BSD-3-Clause
@@ -16,30 +12,6 @@ Summary: Cross platform, open source application for the processing, visualizati
 Development: https://github.com/OpenChemistry/tomviz
 
 Documentation: https://tomviz.readthedocs.io/
-
-About tomviz-pipeline
----------------------
-
-Home: https://github.com/OpenChemistry/tomviz
-
-Package license: BSD-3-Clause
-
-Summary: Python pipeline execution tools for tomviz
-
-Development: https://github.com/OpenChemistry/tomviz
-
-Documentation: https://tomviz.readthedocs.io/en/latest/pipelines.html
-
-This package provides the Python pipeline execution tools from the Tomviz
-project, enabling command-line execution of tomviz operators and pipelines
-without the full GUI application. It includes the tomviz Python library and
-the tomviz-pipeline command-line tool for processing tomographic data.
-
-This package is also required when using the Tomviz Desktop application's
-ExternalPython execution mode, where pipelines run in a separate conda
-environment from the main application. The package must be installed
-in that separate conda environment.
-
 
 Current build status
 ====================
@@ -80,6 +52,13 @@ Current build status
                 </a>
               </td>
             </tr><tr>
+              <td>linux_64_python3.14.____cp314</td>
+              <td>
+                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=11806&branchName=main">
+                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/tomviz-feedstock?branchName=main&jobName=linux&configuration=linux%20linux_64_python3.14.____cp314" alt="variant">
+                </a>
+              </td>
+            </tr><tr>
               <td>osx_64_python3.11.____cpython</td>
               <td>
                 <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=11806&branchName=main">
@@ -98,6 +77,13 @@ Current build status
               <td>
                 <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=11806&branchName=main">
                   <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/tomviz-feedstock?branchName=main&jobName=osx&configuration=osx%20osx_64_python3.13.____cp313" alt="variant">
+                </a>
+              </td>
+            </tr><tr>
+              <td>osx_64_python3.14.____cp314</td>
+              <td>
+                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=11806&branchName=main">
+                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/tomviz-feedstock?branchName=main&jobName=osx&configuration=osx%20osx_64_python3.14.____cp314" alt="variant">
                 </a>
               </td>
             </tr><tr>
@@ -122,6 +108,13 @@ Current build status
                 </a>
               </td>
             </tr><tr>
+              <td>osx_arm64_python3.14.____cp314</td>
+              <td>
+                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=11806&branchName=main">
+                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/tomviz-feedstock?branchName=main&jobName=osx&configuration=osx%20osx_arm64_python3.14.____cp314" alt="variant">
+                </a>
+              </td>
+            </tr><tr>
               <td>win_64_python3.11.____cpython</td>
               <td>
                 <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=11806&branchName=main">
@@ -142,6 +135,13 @@ Current build status
                   <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/tomviz-feedstock?branchName=main&jobName=win&configuration=win%20win_64_python3.13.____cp313" alt="variant">
                 </a>
               </td>
+            </tr><tr>
+              <td>win_64_python3.14.____cp314</td>
+              <td>
+                <a href="https://dev.azure.com/conda-forge/feedstock-builds/_build/latest?definitionId=11806&branchName=main">
+                  <img src="https://dev.azure.com/conda-forge/feedstock-builds/_apis/build/status/tomviz-feedstock?branchName=main&jobName=win&configuration=win%20win_64_python3.14.____cp314" alt="variant">
+                </a>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -156,7 +156,6 @@ Current release info
 | Name | Downloads | Version | Platforms |
 | --- | --- | --- | --- |
 | [![Conda Recipe](https://img.shields.io/badge/recipe-tomviz-green.svg)](https://anaconda.org/conda-forge/tomviz) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/tomviz.svg)](https://anaconda.org/conda-forge/tomviz) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/tomviz.svg)](https://anaconda.org/conda-forge/tomviz) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/tomviz.svg)](https://anaconda.org/conda-forge/tomviz) |
-| [![Conda Recipe](https://img.shields.io/badge/recipe-tomviz--pipeline-green.svg)](https://anaconda.org/conda-forge/tomviz-pipeline) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/tomviz-pipeline.svg)](https://anaconda.org/conda-forge/tomviz-pipeline) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/tomviz-pipeline.svg)](https://anaconda.org/conda-forge/tomviz-pipeline) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/tomviz-pipeline.svg)](https://anaconda.org/conda-forge/tomviz-pipeline) |
 
 Installing tomviz
 =================
@@ -168,31 +167,73 @@ conda config --add channels conda-forge
 conda config --set channel_priority strict
 ```
 
-Once the `conda-forge` channel has been enabled, `tomviz, tomviz-pipeline` can be installed with `conda`:
+How to use
+----------
+
+<details>
+<summary>With conda</summary>
 
 ```
-conda install tomviz tomviz-pipeline
+conda install tomviz
 ```
 
-or with `mamba`:
+</details>
+
+<details>
+<summary>With mamba</summary>
 
 ```
-mamba install tomviz tomviz-pipeline
+mamba install tomviz
 ```
 
-It is possible to list all of the versions of `tomviz` available on your platform with `conda`:
+</details>
+
+<details>
+<summary>With pixi</summary>
+
+```
+# for adding to your local project
+pixi add tomviz
+# for installing globally
+pixi global install tomviz
+```
+
+</details>
+
+Search package versions
+-----------------------
+
+It is possible to list all of the versions of `tomviz` available on your platform:
+
+<details>
+<summary>With conda</summary>
 
 ```
 conda search tomviz --channel conda-forge
 ```
 
-or with `mamba`:
+</details>
+
+<details>
+<summary>With mamba</summary>
 
 ```
 mamba search tomviz --channel conda-forge
 ```
 
-Alternatively, `mamba repoquery` may provide more information:
+</details>
+
+<details>
+<summary>With pixi</summary>
+
+```
+pixi search tomviz --channel conda-forge
+```
+
+</details>
+
+<details>
+<summary>With mamba repoquery, which may provide more information</summary>
 
 ```
 # Search all versions available on your platform:
@@ -204,6 +245,8 @@ mamba repoquery whoneeds tomviz --channel conda-forge
 # List dependencies of `tomviz`:
 mamba repoquery depends tomviz --channel conda-forge
 ```
+
+</details>
 
 
 About conda-forge
