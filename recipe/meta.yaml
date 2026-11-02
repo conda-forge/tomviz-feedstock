@@ -1,7 +1,7 @@
 {% set name = "tomviz" %}
 {% set version = "3.1.0" %}
 {% set paraview_version = "6.1.1" %}
-{% set build_number = 0 %}
+{% set build_number = 1 %}
 
 package:
   name: {{ name|lower }}-split
@@ -43,6 +43,13 @@ outputs:
         - tbb-devel
         - libxml2-devel
         - libprotobuf
+        # paraview 6.1.1 compiles inline protobuf code that calls versioned
+        # absl symbols, but declares no libabseil run dependency. Pin the
+        # abseil it was built against so its run_export pins tomviz too.
+        # Otherwise a new env gets libprotobuf built against a newer abseil
+        # and tomviz fails at launch with an undefined symbol
+        # (OpenChemistry/tomviz#2311).
+        - libabseil 20260526.*
         # Not linked by tomviz itself either: paraview's vtkRemotingApplication
         # links libhdf5 but paraview declares no hdf5 run dependency, so without
         # this run_export the solver pairs paraview (hdf5 1.14) with the hdf5 2
