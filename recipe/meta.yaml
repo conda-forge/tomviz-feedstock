@@ -1,7 +1,7 @@
 {% set name = "tomviz" %}
 {% set version = "3.1.1" %}
 {% set paraview_version = "6.1.1" %}
-{% set build_number = 0 %}
+{% set build_number = 1 %}
 
 package:
   name: {{ name|lower }}-split
@@ -72,6 +72,8 @@ outputs:
         - jsonpointer
         - pyfftw
         - pygments
+        # Reads ZEISS Xradia files (.txrm, .txm, .xrm)
+        - olefile
     test:
       imports:
         - paraview
