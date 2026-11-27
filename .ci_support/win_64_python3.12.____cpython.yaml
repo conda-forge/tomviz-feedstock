@@ -1,5 +1,7 @@
 c_compiler:
 - vs2022
+c_compiler_version:
+- '2022'
 c_stdlib:
 - vs
 channel_sources:
@@ -8,6 +10,8 @@ channel_targets:
 - conda-forge main
 cxx_compiler:
 - vs2022
+cxx_compiler_version:
+- '2022'
 hdf5:
 - 1.14.6
 libprotobuf:
@@ -25,4 +29,4 @@ target_platform:
 tbb_devel:
 - '2023'
 vtk:
-- '9.6'
+- 9.7.2
